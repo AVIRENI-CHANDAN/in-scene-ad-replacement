@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './../AuthContext';
+import styles from './NavigationBar.module.scss';
 
 function NavBar() {
   const { isAuthenticated, logout } = useAuth();
 
   return (
-    <nav>
+    <nav className={styles.NavigationBar}>
       {isAuthenticated ? (
         // Post-login navigation items
         <>

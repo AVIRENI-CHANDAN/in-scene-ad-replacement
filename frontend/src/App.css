@@ -5,3 +5,8 @@
   display: flex;
   flex-flow: column nowrap;
 }
+
+.App .PageWrapper {
+  flex: 1 1 auto;
+  overflow: auto;
+}

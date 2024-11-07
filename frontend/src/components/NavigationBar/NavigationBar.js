@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from './../AuthContext';
 
 function NavBar() {
@@ -9,15 +10,15 @@ function NavBar() {
       {isAuthenticated ? (
         // Post-login navigation items
         <>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/profile">Profile</a>
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/profile">Profile</Link>
           <button onClick={logout}>Logout</button>
         </>
       ) : (
         // Pre-login navigation items
         <>
-          <a href="/login">Login</a>
-          <a href="/signup">Sign Up</a>
+          <Link to="/login">Login</Link>
+          <Link to="/signup">Sign Up</Link>
         </>
       )}
     </nav>

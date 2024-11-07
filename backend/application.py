@@ -5,7 +5,7 @@ from flask import Flask
 from .environ import get_environment_variable, parse_bool
 
 
-def create_app(*args, **kwargs):
+def create_app(*args, **kwargs) -> Flask:
     """Create and configure a Flask application instance.
 
     This function initializes a new Flask application with the provided arguments
@@ -26,7 +26,7 @@ def create_app(*args, **kwargs):
     return Flask(__name__, *args, **kwargs)
 
 
-def run_application(app: Flask, debug: bool = False):
+def run_application(app: Flask, debug: bool = False) -> None:
     """Run the Flask application with optional debugging.
 
     This function starts the Flask application server, allowing it to handle incoming requests.

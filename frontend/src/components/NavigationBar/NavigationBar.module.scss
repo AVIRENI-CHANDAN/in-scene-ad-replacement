@@ -1,3 +1,51 @@
-.NavigationBar {
-    border: 1px solid red;
+.Header {
+    display: flex;
+    flex-flow: row nowrap;
+    border-bottom: 1px solid lightgray;
+
+    .LogoContainer {
+        flex: 0 0 auto;
+        text-decoration: none;
+        color: initial;
+        cursor: pointer;
+
+        .LogoWrapper {
+            .Logo {
+                height: 3rem;
+                padding: 6px 24px;
+            }
+        }
+    }
+
+    .NavigationBar {
+        flex: 1 1 auto;
+        position: relative;
+        display: flex;
+
+        .ActionButtons {
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: flex-end;
+            flex: 1 1 auto;
+            padding: 0 12px;
+            gap: 6px;
+            height: 100%;
+
+            .ActionButton {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex: 0 0 100px;
+                padding: 6px 8px;
+                height: 100%;
+                font-size: 1rem;
+                color: initial;
+                text-decoration: none;
+
+                &:hover {
+                    border-bottom: 1px solid gray;
+                }
+            }
+        }
+    }
 }

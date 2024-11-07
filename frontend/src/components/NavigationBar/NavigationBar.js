@@ -7,22 +7,31 @@ function NavBar() {
   const { isAuthenticated, logout } = useAuth();
 
   return (
-    <nav className={styles.NavigationBar}>
-      {isAuthenticated ? (
-        // Post-login navigation items
-        <>
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/profile">Profile</Link>
-          <button onClick={logout}>Logout</button>
-        </>
-      ) : (
-        // Pre-login navigation items
-        <>
-          <Link to="/login">Login</Link>
-          <Link to="/signup">Sign Up</Link>
-        </>
-      )}
-    </nav>
+    <header className={styles.Header}>
+      <Link to="/" className={styles.LogoContainer}>
+        <div className={styles.LogoWrapper}>
+          <img src="/g.svg" alt='G logo Error' className={styles.Logo} />
+        </div>
+      </Link>
+      <nav className={styles.NavigationBar}>
+        <div className={styles.ActionButtons}>
+          {isAuthenticated ? (
+            // Post-login navigation items
+            <>
+              <Link to="/dashboard" className={styles.ActionButton}>Dashboard</Link>
+              <Link to="/profile" className={styles.ActionButton}>Profile</Link>
+              <button onClick={logout} className={styles.LogoutActionButton}>Logout</button>
+            </>
+          ) : (
+            // Pre-login navigation items
+            <>
+              <Link to="/login" className={styles.ActionButton}>Login</Link>
+              <Link to="/signup" className={styles.ActionButton}>Sign Up</Link>
+            </>
+          )}
+        </div>
+      </nav>
+    </header>
   );
 }
 

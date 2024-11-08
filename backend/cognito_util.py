@@ -25,37 +25,20 @@ def sign_up(
         user_attributes (dict): Additional attributes for the user (e.g., email).
 
     Returns:
-        tuple: JSON response and HTTP status code.
-            - On success: A JSON response with a success message and HTTP 200.
-            - If the username exists: JSON with an error message and HTTP 400.
-            - On other exceptions: JSON with an error message and HTTP 500.
+        tuple: A tuple containing the JSON response and HTTP status code.
+            - On success: A JSON response with a success message and HTTPStatus.OK (200).
+            - If the username exists: JSON with an error message and HTTPStatus.BAD_REQUEST (400).
+            - On other exceptions: JSON with an error message and HTTPStatus.INTERNAL_SERVER_ERROR (500).
 
     Example:
         >>> sign_up("testuser", "SecurePassword123", "test@example.com", {"email": "test@example.com"})
     """
-    try:
-        # Send the sign-up request to AWS Cognito
-        response = cognito_client.sign_up(
-            ClientId=get_environment_variable("COGNITO_CLIENT_ID"),
-            Username=username,
-            Password=password,
-            UserAttributes=user_attributes,
-        )
-        # On success, return a confirmation message
-        return (
-            jsonify(
-                {
-                    "message": "User registered successfully. Check your email for verification."
-                }
-            ),
-            HTTPStatus.OK,
-        )
-    except cognito_client.exceptions.UsernameExistsException:
-        # Handle case where the username already exists in Cognito
-        return jsonify({"error": "User already exists"}), 400
-    except Exception as e:
-        # Handle other exceptions and provide error details
-        return jsonify({"error": str(e)}), 500
+    return cognito_client.sign_up(
+        ClientId=get_environment_variable("COGNITO_CLIENT_ID"),
+        Username=username,
+        Password=password,
+        UserAttributes=user_attributes,
+    )
 
 
 def verify_sign_up(username: str, code: str):
@@ -70,27 +53,17 @@ def verify_sign_up(username: str, code: str):
         code (str): The confirmation code sent to the user’s email.
 
     Returns:
-        tuple: JSON response and HTTP status code.
-            - On success: JSON response with a success message and HTTP 200.
-            - If the code is invalid: JSON with an error message and HTTP 400.
-            - On other exceptions: JSON with an error message and HTTP 500.
+        tuple: A tuple containing the JSON response and HTTP status code.
+            - On success: JSON response with a success message and HTTPStatus.OK (200).
+            - If the code is invalid: JSON with an error message and HTTPStatus.BAD_REQUEST (400).
+            - On other exceptions: JSON with an error message and HTTPStatus.INTERNAL_SERVER_ERROR (500).
 
     Example:
         >>> verify_sign_up("testuser", "123456")
     """
-    data = request.json
-    try:
-        # Verify the user's sign-up using the confirmation code
-        cognito_client.confirm_sign_up(
-            ClientId=get_environment_variable("COGNITO_CLIENT_ID"),
-            Username=data["username"],
-            ConfirmationCode=data["code"],
-        )
-        # On success, return a confirmation message
-        return jsonify({"message": "User verified successfully."}), 200
-    except cognito_client.exceptions.CodeMismatchException:
-        # Handle case where the confirmation code is invalid
-        return jsonify({"error": "Invalid verification code"}), 400
-    except Exception as e:
-        # Handle other exceptions and provide error details
-        return jsonify({"error": str(e)}), 500
+    # Verify the user's sign-up using the confirmation code
+    return cognito_client.confirm_sign_up(
+        ClientId=get_environment_variable("COGNITO_CLIENT_ID"),
+        Username=username,
+        ConfirmationCode=code,
+    )

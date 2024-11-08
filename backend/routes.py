@@ -72,6 +72,11 @@ def register_cognito_auth_endpoints():
         """
         try:
             data = request.json
+            if not data:
+                return jsonify({"error": "Missing request body"}), 400
+            required_fields = ["username", "email", "password"]
+            if not all(field in data and data[field] for field in required_fields):
+                return jsonify({"error": "Missing required fields"}), 400
             # Extract user data from request
             username = data.get("username")
             email = data.get("email")

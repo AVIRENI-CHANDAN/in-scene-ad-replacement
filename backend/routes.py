@@ -1,14 +1,15 @@
 import os
 from http import HTTPStatus
 
-from flask import current_app, jsonify, send_from_directory
+from flask import current_app as app
+from flask import jsonify, send_from_directory
 
 
-def register_react_base(app):
+def register_react_base():
     """Register the route to serve the React base application.
 
     Args:
-        app: The Flask application instance.
+        None
 
     Returns:
         None
@@ -29,11 +30,11 @@ def register_react_base(app):
         try:
             if path and path.endswith((".js", ".css", ".png", ".jpg", ".svg")):
                 return (
-                    send_from_directory(current_app.static_folder, path),
+                    send_from_directory(app.static_folder, path),
                     HTTPStatus.OK,
                 )
             return (
-                send_from_directory(current_app.template_folder, "index.html"),
+                send_from_directory(app.template_folder, "index.html"),
                 HTTPStatus.OK,
             )
         except Exception as e:

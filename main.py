@@ -12,7 +12,8 @@ app = create_app(
     template_folder=get_environment_variable("TEMPLATE_FOLDER"),
     root_path=os.path.dirname(__file__),
 )
-register_react_base(app)
+with app.app_context():
+    register_react_base()
 
 if __name__ == "__main__":
     run_application(app)

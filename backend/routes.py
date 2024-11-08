@@ -72,8 +72,6 @@ def register_cognito_auth_endpoints():
         """
         try:
             data = request.json
-            print(f"Registering user: {data}")
-
             # Extract user data from request
             username = data.get("username")
             email = data.get("email")

@@ -4,6 +4,7 @@ import './App.css';
 import { AuthProvider } from './components/AuthContext';
 import LandingPage from './components/LandingPage/LandingPage';
 import NavigationBar from './components/NavigationBar/NavigationBar';
+import RegistrationPage from './components/RegistrationPage/RegistrationPage';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <div className='PageWrapper'>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/signup" element={<RegistrationPage />} />
           </Routes>
         </div>
       </div>

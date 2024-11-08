@@ -22,7 +22,7 @@ def sign_up(
         username (str): The unique username for the new user.
         password (str): The password for the new user.
         email (str): The user's email address.
-        user_attributes (dict): Additional attributes for the user (e.g., email).
+        user_attributes (list): Additional attributes for the user (e.g., email).
 
     Returns:
         tuple: A tuple containing the JSON response and HTTP status code.
@@ -31,7 +31,7 @@ def sign_up(
             - On other exceptions: JSON with an error message and HTTPStatus.INTERNAL_SERVER_ERROR (500).
 
     Example:
-        >>> sign_up("testuser", "SecurePassword123", "test@example.com", {"email": "test@example.com"})
+        >>> sign_up("testuser", "SecurePassword123", "test@example.com", [{"Name": "email", "Value": "test@example.com"}])
     """
     return cognito_client.sign_up(
         ClientId=get_environment_variable("COGNITO_CLIENT_ID"),

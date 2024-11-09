@@ -1,4 +1,5 @@
 import os
+import re
 from http import HTTPStatus
 
 import boto3
@@ -58,6 +59,39 @@ def register_cognito_auth_endpoints():
         None
     """
 
+    def validate_username(username):
+        """
+        Validate the username based on custom criteria.
+
+        A valid username must be between 3 and 30 characters and contain only alphanumeric
+        characters or underscores.
+
+        Args:
+            username (str): The username to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
+        """
+        return bool(
+            username
+            and 3 <= len(username) <= 30
+            and re.match("^[a-zA-Z0-9_]+$", username)
+        )
+
+    def validate_password(password):
+        """
+        Validate the password based on custom criteria.
+
+        A valid password must be between 8 and 50 characters.
+
+        Args:
+            password (str): The password to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
+        """
+        return bool(password and 8 <= len(password) <= 50)
+
     @app.route("/auth/register", methods=["POST"])
     def register_user():
         """
@@ -91,6 +125,13 @@ def register_cognito_auth_endpoints():
             username = data.get("username")
             email = data.get("email")
             password = data.get("password")
+
+            # Validate username and password
+            if not (validate_username(username) and validate_password(password)):
+                return (
+                    jsonify({"error": "Invalid username or password format"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
 
             # Register user with Cognito
             response = sign_up(
@@ -147,6 +188,13 @@ def register_cognito_auth_endpoints():
         data = request.json
         username = data.get("username")
         password = data.get("password")
+
+        # Validate username and password
+        if not (validate_username(username) and validate_password(password)):
+            return (
+                jsonify({"error": "Invalid username or password format"}),
+                HTTPStatus.BAD_REQUEST,
+            )
 
         try:
             # Authenticate user with Cognito

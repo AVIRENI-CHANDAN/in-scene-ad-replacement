@@ -1,4 +1,5 @@
 import os
+import re
 from http import HTTPStatus
 
 import boto3
@@ -58,6 +59,39 @@ def register_cognito_auth_endpoints():
         None
     """
 
+    def validate_username(username):
+        """
+        Validate the username based on custom criteria.
+
+        A valid username must be between 3 and 30 characters and contain only alphanumeric
+        characters or underscores.
+
+        Args:
+            username (str): The username to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
+        """
+        return bool(
+            username
+            and 3 <= len(username) <= 30
+            and re.match("^[a-zA-Z0-9_]+$", username)
+        )
+
+    def validate_password(password):
+        """
+        Validate the password based on custom criteria.
+
+        A valid password must be between 8 and 50 characters.
+
+        Args:
+            password (str): The password to validate.
+
+        Returns:
+            bool: True if valid, False otherwise.
+        """
+        return bool(password and 8 <= len(password) <= 50)
+
     @app.route("/auth/register", methods=["POST"])
     def register_user():
         """
@@ -91,6 +125,13 @@ def register_cognito_auth_endpoints():
             username = data.get("username")
             email = data.get("email")
             password = data.get("password")
+
+            # Validate username and password
+            if not (validate_username(username) and validate_password(password)):
+                return (
+                    jsonify({"error": "Invalid username or password format"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
 
             # Register user with Cognito
             response = sign_up(
@@ -131,3 +172,51 @@ def register_cognito_auth_endpoints():
                 jsonify({"error": "Failed to verify sign up"}),
                 HTTPStatus.BAD_REQUEST,
             )
+
+    @app.route("/auth/login", methods=["POST"])
+    def login_user_endpoint():
+        """
+        Authenticate a user with AWS Cognito, returning JWT tokens for session management.
+
+        Expects JSON input with:
+            - username (str): The user's username.
+            - password (str): The user's password.
+
+        Returns:
+            Response: JSON containing JWT tokens (ID, access, and refresh) or an error message.
+        """
+        if not request.is_json:
+            return {"error": "Request must be JSON"}, 400
+        data = request.json
+        if not data or "username" not in data or "password" not in data:
+            return {"error": "Username and password are required"}, 400
+        username = data.get("username")
+        password = data.get("password")
+
+        # Validate username and password
+        if not (validate_username(username) and validate_password(password)):
+            return (
+                jsonify({"error": "Invalid username or password format"}),
+                HTTPStatus.BAD_REQUEST,
+            )
+
+        try:
+            # Authenticate user with Cognito
+            response = login_user(username, password)
+            # Extract JWT tokens from response
+            tokens = {
+                "id_token": response["AuthenticationResult"]["IdToken"],
+                "access_token": response["AuthenticationResult"]["AccessToken"],
+                "refresh_token": response["AuthenticationResult"]["RefreshToken"],
+            }
+
+            return jsonify(tokens), HTTPStatus.OK
+
+        except cognito_client.exceptions.NotAuthorizedException:
+            return (
+                jsonify({"error": "Invalid username or password"}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+        except Exception as e:
+            print(f"Login error: {e}")
+            return jsonify({"error": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR

@@ -92,7 +92,50 @@ def register_cognito_auth_endpoints():
         """
         return bool(password and 8 <= len(password) <= 50)
 
+    def validate_input(func):
+        """
+        Decorator function to validate the presence and format of `username` and `password` fields in the JSON request data.
+
+        Args:
+            func (function): The function to be decorated.
+
+        Returns:
+            function: The wrapped function with input validation.
+        """
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not request.is_json:
+                return (
+                    jsonify({"error": "Request must be JSON"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
+
+            try:
+                data = request.json
+            except ValueError:
+                return jsonify({"error": "Invalid JSON format"}), 400
+            if not data or "username" not in data or "password" not in data:
+                return (
+                    jsonify({"error": "Username and password are required"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
+
+            username = data["username"]
+            password = data["password"]
+
+            # Validate username and password
+            if not (validate_username(username) and validate_password(password)):
+                return (
+                    jsonify({"error": "Invalid username or password format"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
+            return func(*args, **kwargs)
+
+        return wrapper
+
     @app.route("/auth/register", methods=["POST"])
+    @validate_input
     def register_user():
         """
         Register a new user in AWS Cognito.
@@ -107,36 +150,12 @@ def register_cognito_auth_endpoints():
         """
         try:
             data = request.json
-            if not data:
-                return (
-                    jsonify({"error": "Missing request body"}),
-                    HTTPStatus.BAD_REQUEST,
-                )
-
-            # Check required fields
-            required_fields = ["username", "email", "password"]
-            if not all(field in data and data[field] for field in required_fields):
-                return (
-                    jsonify({"error": "Missing required fields"}),
-                    HTTPStatus.BAD_REQUEST,
-                )
-
-            # Extract user data from request
-            username = data.get("username")
             email = data.get("email")
-            password = data.get("password")
-
-            # Validate username and password
-            if not (validate_username(username) and validate_password(password)):
-                return (
-                    jsonify({"error": "Invalid username or password format"}),
-                    HTTPStatus.BAD_REQUEST,
-                )
 
             # Register user with Cognito
             response = sign_up(
-                username=username,
-                password=password,
+                username=data["username"],
+                password=data["password"],
                 email=email,
                 user_attributes=[{"Name": "email", "Value": email}],
             )
@@ -174,6 +193,7 @@ def register_cognito_auth_endpoints():
             )
 
     @app.route("/auth/login", methods=["POST"])
+    @validate_input
     def login_user_endpoint():
         """
         Authenticate a user with AWS Cognito, returning JWT tokens for session management.
@@ -185,31 +205,15 @@ def register_cognito_auth_endpoints():
         Returns:
             Response: JSON containing JWT tokens (ID, access, and refresh) or an error message.
         """
-        if not request.is_json:
-            return {"error": "Request must be JSON"}, 400
-        data = request.json
-        if not data or "username" not in data or "password" not in data:
-            return {"error": "Username and password are required"}, 400
-        username = data.get("username")
-        password = data.get("password")
-
-        # Validate username and password
-        if not (validate_username(username) and validate_password(password)):
-            return (
-                jsonify({"error": "Invalid username or password format"}),
-                HTTPStatus.BAD_REQUEST,
-            )
-
         try:
             # Authenticate user with Cognito
-            response = login_user(username, password)
-            # Extract JWT tokens from response
+            data = request.json
+            response = login_user(data["username"], data["password"])
             tokens = {
                 "id_token": response["AuthenticationResult"]["IdToken"],
                 "access_token": response["AuthenticationResult"]["AccessToken"],
                 "refresh_token": response["AuthenticationResult"]["RefreshToken"],
             }
-
             return jsonify(tokens), HTTPStatus.OK
 
         except cognito_client.exceptions.NotAuthorizedException:

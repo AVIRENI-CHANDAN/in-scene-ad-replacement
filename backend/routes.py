@@ -1,10 +1,11 @@
 import os
 from http import HTTPStatus
 
+import boto3
 from flask import current_app as app
 from flask import jsonify, request, send_from_directory
 
-from .cognito_util import sign_up, verify_sign_up
+from .cognito_util import cognito_client, login_user, sign_up, verify_sign_up
 from .environ import get_environment_variable
 
 
@@ -12,9 +13,7 @@ def register_react_base():
     """
     Registers the route to serve the base React application.
 
-    This function serves the main `index.html` or any other static files
-    requested, based on the provided path. It allows the application
-    to work as a single-page application with a React frontend.
+    This function configures the root and dynamic paths to serve the `index.html` file, enabling support for a single-page React frontend. It also allows static assets such as `.js`, `.css`, and image files to be served when requested.
 
     Returns:
         None
@@ -24,20 +23,21 @@ def register_react_base():
     @app.route("/<path:path>")
     def serve_react_app(path=""):
         """
-        Serve React static files based on the provided path.
+        Serve static files for the React app based on the given path.
 
         Args:
-            path (str): The path to the requested file.
+            path (str): Path to the requested file. If it's an empty string or not a
+                        recognized file type, `index.html` will be served by default.
 
         Returns:
-            Response: The static file if found or the React `index.html` as default.
+            Response: The requested static file if found or the main `index.html` if the path is undefined, enabling single-page application behavior.
         """
         print(f"Attempting to serve path: {path}")
         try:
-            # Check for common static file types
+            # Serve common static file types directly
             if path and path.endswith((".js", ".css", ".png", ".jpg", ".svg")):
                 return send_from_directory(app.static_folder, path), HTTPStatus.OK
-            # Default to serving `index.html` for undefined paths
+            # Default to `index.html` for unrecognized paths
             return send_from_directory(app.template_folder, "index.html"), HTTPStatus.OK
         except Exception as e:
             print(f"Error serving file: {e}")
@@ -46,12 +46,13 @@ def register_react_base():
 
 def register_cognito_auth_endpoints():
     """
-    Registers authentication-related endpoints for user registration
-    and verification using AWS Cognito.
+    Registers the authentication endpoints to handle user registration, verification,
+    and login with AWS Cognito.
 
     Endpoints:
-        - POST /auth/register: Register a new user.
-        - POST /auth/verify_sign_up: Verify a user's sign-up with a code.
+        - POST /auth/register: Register a new user with AWS Cognito.
+        - POST /auth/verify_sign_up: Confirm user sign-up with a verification code.
+        - POST /auth/login: Log in a user and return authentication tokens.
 
     Returns:
         None
@@ -60,29 +61,38 @@ def register_cognito_auth_endpoints():
     @app.route("/auth/register", methods=["POST"])
     def register_user():
         """
-        Register a new user with AWS Cognito.
+        Register a new user in AWS Cognito.
 
-        Expects JSON data in the request with keys:
-            - username (str): The username for the new user.
-            - email (str): The email address of the user.
-            - password (str): The password for the user.
+        Expects JSON input with:
+            - username (str): The user's unique username.
+            - email (str): User's email address.
+            - password (str): The user's password.
 
         Returns:
-            Response: JSON response indicating success or failure of the registration.
+            Response: JSON indicating success or error message, with relevant HTTP status.
         """
         try:
             data = request.json
             if not data:
-                return jsonify({"error": "Missing request body"}), 400
+                return (
+                    jsonify({"error": "Missing request body"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
+
+            # Check required fields
             required_fields = ["username", "email", "password"]
             if not all(field in data and data[field] for field in required_fields):
-                return jsonify({"error": "Missing required fields"}), 400
+                return (
+                    jsonify({"error": "Missing required fields"}),
+                    HTTPStatus.BAD_REQUEST,
+                )
+
             # Extract user data from request
             username = data.get("username")
             email = data.get("email")
             password = data.get("password")
 
-            # Call to Cognito sign-up utility
+            # Register user with Cognito
             response = sign_up(
                 username=username,
                 password=password,
@@ -97,24 +107,24 @@ def register_cognito_auth_endpoints():
     @app.route("/auth/verify_sign_up", methods=["POST"])
     def verify_user_sign_up():
         """
-        Verify a user's sign-up with AWS Cognito.
+        Verify the user's sign-up with AWS Cognito by submitting a confirmation code.
 
-        Expects JSON data in the request with keys:
+        Expects JSON input with:
             - username (str): The username of the user to verify.
             - code (str): The verification code sent to the user's email.
 
         Returns:
-            Response: JSON response indicating success or failure of verification.
+            Response: JSON indicating verification success or failure, with relevant HTTP status.
         """
         try:
             data = request.json
             print(f"Verifying sign up: {data}")
 
-            # Extract data for verification
+            # Extract verification data
             username = data.get("username")
             code = data.get("code")
 
-            # Call to Cognito verify utility
+            # Verify user with Cognito
             response = verify_sign_up(username, code)
             return jsonify(response), HTTPStatus.OK
         except Exception as e:

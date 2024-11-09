@@ -111,7 +111,10 @@ def register_cognito_auth_endpoints():
                     HTTPStatus.BAD_REQUEST,
                 )
 
-            data = request.json
+            try:
+                data = request.json
+            except ValueError:
+                return jsonify({"error": "Invalid JSON format"}), 400
             if not data or "username" not in data or "password" not in data:
                 return (
                     jsonify({"error": "Username and password are required"}),

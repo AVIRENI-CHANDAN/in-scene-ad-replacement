@@ -118,8 +118,6 @@ def register_cognito_auth_endpoints():
         """
         try:
             data = request.json
-            print(f"Verifying sign up: {data}")
-
             # Extract verification data
             username = data.get("username")
             code = data.get("code")

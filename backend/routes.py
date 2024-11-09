@@ -144,7 +144,11 @@ def register_cognito_auth_endpoints():
         Returns:
             Response: JSON containing JWT tokens (ID, access, and refresh) or an error message.
         """
+        if not request.is_json:
+            return {"error": "Request must be JSON"}, 400
         data = request.json
+        if not data or "username" not in data or "password" not in data:
+            return {"error": "Username and password are required"}, 400
         username = data.get("username")
         password = data.get("password")
 

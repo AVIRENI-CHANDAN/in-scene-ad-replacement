@@ -70,3 +70,32 @@ def verify_sign_up(username: str, code: str):
         Username=username,
         ConfirmationCode=code,
     )
+
+
+def login_user(username: str, password: str):
+    """
+    Authenticates a user with AWS Cognito and initiates a session, returning JWT tokens.
+
+    This function uses the AWS Cognito "USER_PASSWORD_AUTH" authentication flow to verify
+    a user's credentials. On successful authentication, JWT tokens (ID token, access token,
+    and refresh token) are returned for session management.
+
+    Args:
+        username (str): The username of the user attempting to log in.
+        password (str): The user's password.
+
+    Returns:
+        dict: A dictionary containing the authentication result, including JWT tokens.
+
+    Raises:
+        botocore.exceptions.ClientError: If authentication fails due to invalid credentials,
+        an error message is returned.
+
+    Example:
+        >>> login_user("testuser", "SecurePassword123")
+    """
+    return cognito_client.initiate_auth(
+        ClientId=get_environment_variable("COGNITO_CLIENT_ID"),
+        AuthFlow="USER_PASSWORD_AUTH",
+        AuthParameters={"USERNAME": username, "PASSWORD": password},
+    )

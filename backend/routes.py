@@ -131,3 +131,40 @@ def register_cognito_auth_endpoints():
                 jsonify({"error": "Failed to verify sign up"}),
                 HTTPStatus.BAD_REQUEST,
             )
+
+    @app.route("/auth/login", methods=["POST"])
+    def login_user_endpoint():
+        """
+        Authenticate a user with AWS Cognito, returning JWT tokens for session management.
+
+        Expects JSON input with:
+            - username (str): The user's username.
+            - password (str): The user's password.
+
+        Returns:
+            Response: JSON containing JWT tokens (ID, access, and refresh) or an error message.
+        """
+        data = request.json
+        username = data.get("username")
+        password = data.get("password")
+
+        try:
+            # Authenticate user with Cognito
+            response = login_user(username, password)
+            # Extract JWT tokens from response
+            tokens = {
+                "id_token": response["AuthenticationResult"]["IdToken"],
+                "access_token": response["AuthenticationResult"]["AccessToken"],
+                "refresh_token": response["AuthenticationResult"]["RefreshToken"],
+            }
+
+            return jsonify(tokens), HTTPStatus.OK
+
+        except cognito_client.exceptions.NotAuthorizedException:
+            return (
+                jsonify({"error": "Invalid username or password"}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+        except Exception as e:
+            print(f"Login error: {e}")
+            return jsonify({"error": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR

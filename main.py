@@ -1,5 +1,7 @@
 import os
 
+from flask_cors import CORS
+
 from backend import (
     create_app,
     get_environment_variable,
@@ -18,4 +20,5 @@ with app.app_context():
     register_cognito_auth_endpoints()
 
 if __name__ == "__main__":
+    CORS(app)
     run_application(app)

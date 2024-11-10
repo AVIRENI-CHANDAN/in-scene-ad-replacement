@@ -8,7 +8,8 @@ function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
+  const handleLogin = async (event) => {
+    event.preventDefault(); // Prevent the default form submission behavior
     if (!username || username.length < 3) {
       setErrorMessage('Username must be at least 3 characters');
       return;

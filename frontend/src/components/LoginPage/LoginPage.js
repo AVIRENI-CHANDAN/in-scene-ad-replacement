@@ -19,12 +19,12 @@ function LoginPage() {
   const handleLogin = async (event) => {
     event.preventDefault();
 
-    if (!email || !password) {
+    if (!username || !password) {
       setError('Please fill in all fields');
       return;
     }
 
-    if (email.length < 5 || password.length < 5) {
+    if (username.length < 5 || password.length < 5) {
       setError('Email and password must be at least 5 characters long');
       return;
     }

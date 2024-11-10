@@ -19,6 +19,16 @@ function LoginPage() {
   const handleLogin = async (event) => {
     event.preventDefault();
 
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (!email.includes('@')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     try {
       const payload = { username, password };
       const response = await fetch('/auth/login', {

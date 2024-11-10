@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './RegistrationPage.module.scss';
 
@@ -9,7 +9,31 @@ function RegistrationPage() {
   const [verificationCode, setVerificationCode] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const verifyAccessToken = async () => {
+      try {
+        const response = await fetch('/auth/verify_access_token', {
+          method: 'POST',
+          credentials: 'include',  // Include cookies in the request
+        });
+
+        if (response.ok) {
+          // If the access token is valid, redirect to the dashboard
+          navigate('/dashboard');
+        }
+        else {
+          console.error("Invalid token");
+        }
+      } catch (error) {
+        console.error('Error verifying access token:', error);
+      }
+    };
+
+    verifyAccessToken();
+  }, [navigate]);
 
   const handleRegister = async () => {
     try {

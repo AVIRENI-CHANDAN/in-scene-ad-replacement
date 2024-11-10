@@ -1,41 +1,33 @@
 // AuthContext.js
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-// Create a Context for the authentication state
 const AuthContext = createContext();
 
-// AuthProvider component to wrap around the parts of the app that need access to auth state
 export function AuthProvider({ children }) {
-    const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        // Check both sessionStorage and localStorage for the auth status
-        return sessionStorage.getItem('isAuthenticated') === 'true' ||
-            localStorage.getItem('isAuthenticated') === 'true';
-    });
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    const login = () => setIsAuthenticated(true);
+
+    const logout = async () => {
+        await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+        setIsAuthenticated(false);
+    };
 
     useEffect(() => {
-        // Sync the authentication status across sessionStorage and localStorage
-        if (isAuthenticated) {
-            sessionStorage.setItem('isAuthenticated', 'true');
-            localStorage.setItem('isAuthenticated', 'true');
-        } else {
-            sessionStorage.removeItem('isAuthenticated');
-            localStorage.removeItem('isAuthenticated');
-        }
-    }, [isAuthenticated]);
+        const checkAuthStatus = async () => {
+            try {
+                const response = await fetch('/auth/verify_access_token', {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                setIsAuthenticated(response.ok);
+            } catch (error) {
+                console.error('Error checking authentication status:', error);
+            }
+        };
 
-    const login = (persist = false) => {
-        setIsAuthenticated(true);
-        sessionStorage.setItem('isAuthenticated', 'true');
-        if (persist) {
-            localStorage.setItem('isAuthenticated', 'true');
-        }
-    };
-
-    const logout = () => {
-        setIsAuthenticated(false);
-        sessionStorage.removeItem('isAuthenticated');
-        localStorage.removeItem('isAuthenticated');
-    };
+        checkAuthStatus();
+    }, []);
 
     return (
         <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
@@ -44,7 +36,6 @@ export function AuthProvider({ children }) {
     );
 }
 
-// Custom hook to use the AuthContext in other components
 export function useAuth() {
     return useContext(AuthContext);
 }

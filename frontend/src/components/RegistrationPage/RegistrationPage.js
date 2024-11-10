@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 import styles from './RegistrationPage.module.scss';
 
 function RegistrationPage() {
@@ -10,32 +11,25 @@ function RegistrationPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const { isAuthenticated } = useAuth(); // Access authentication state
   const navigate = useNavigate();
 
+  // Redirect to dashboard if user is already authenticated
   useEffect(() => {
-    const verifyAccessToken = async () => {
-      try {
-        const response = await fetch('/auth/verify_access_token', {
-          method: 'POST',
-          credentials: 'include',  // Include cookies in the request
-        });
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
-        if (response.ok) {
-          // If the access token is valid, redirect to the dashboard
-          navigate('/dashboard');
-        }
-        else {
-          console.error("Invalid token");
-        }
-      } catch (error) {
-        console.error('Error verifying access token:', error);
-      }
-    };
-
-    verifyAccessToken();
-  }, [navigate]);
+  // Navigate to login after both registration and verification are successful
+  useEffect(() => {
+    if (isRegistered && isVerified) {
+      navigate('/login');
+    }
+  }, [isRegistered, isVerified, navigate]);
 
   const handleRegister = async () => {
+    setErrorMessage('');
     try {
       const response = await fetch('/auth/register', {
         method: 'POST',
@@ -45,14 +39,17 @@ function RegistrationPage() {
       if (response.ok) {
         setIsRegistered(true);
       } else {
-        console.error('Registration failed');
+        const errorData = await response.json();
+        setErrorMessage(errorData.error || 'Registration failed');
       }
     } catch (error) {
       console.error('Error during registration:', error);
+      setErrorMessage('An error occurred during registration. Please try again.');
     }
   };
 
   const handleVerifySignUp = async () => {
+    setErrorMessage('');
     try {
       const response = await fetch('/auth/verify_sign_up', {
         method: 'POST',
@@ -62,45 +59,61 @@ function RegistrationPage() {
       if (response.ok) {
         setIsVerified(true);
       } else {
-        console.error('Verification failed');
+        const errorData = await response.json();
+        setErrorMessage(errorData.error || 'Verification failed');
       }
     } catch (error) {
       console.error('Error during verification:', error);
+      setErrorMessage('An error occurred during verification. Please try again.');
     }
   };
-
-  // Redirect to login if both registration and verification are successful
-  if (isRegistered && isVerified) {
-    navigate('/login');
-  }
 
   return (
     <div className={styles.Register}>
       <h1>Register</h1>
-      {isRegistered ?
+      {errorMessage && <p className={styles.ErrorMessage}>{errorMessage}</p>}
+      {isRegistered ? (
         <div className={styles.FormSection}>
           <h2>Verify Your Account</h2>
           <label>Verification Code</label>
-          <input type="text" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} />
+          <input
+            type="text"
+            value={verificationCode}
+            onChange={(e) => setVerificationCode(e.target.value)}
+            required
+          />
           <button className={styles.SubmitButton} onClick={handleVerifySignUp}>
             Verify
           </button>
         </div>
-        :
+      ) : (
         <div className={styles.FormSection}>
           <label>Username</label>
-          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
           <label>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
           <label>Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           <button className={styles.SubmitButton} onClick={handleRegister}>
             Register
           </button>
-        </div>}
+        </div>
+      )}
     </div>
   );
 }

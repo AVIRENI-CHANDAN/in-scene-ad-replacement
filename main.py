@@ -20,5 +20,16 @@ with app.app_context():
     register_cognito_auth_endpoints()
 
 if __name__ == "__main__":
-    CORS(app)
+    CORS(
+        app,
+        resources={
+            r"*": {  # Apply CORS only to endpoints under /auth/
+                "origins": [
+                    "http://localhost:3000",
+                    "http://localhost:5000",
+                ],  # Specify allowed origins
+                "methods": ["GET", "POST"],  # Only allow POST requests
+            }
+        },
+    )
     run_application(app)

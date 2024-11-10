@@ -40,7 +40,11 @@ function LoginPage() {
           const errorData = JSON.parse(errorText); // Attempt to parse JSON if possible
           setErrorMessage(errorData.error || 'Login failed');
         } catch {
-          setErrorMessage('An unexpected error occurred.'); // Fallback for non-JSON responses
+          setErrorMessage(
+            navigator.onLine 
+              ? 'Server error: Unable to process login request'
+              : 'Network error: Please check your internet connection'
+          );
         }
         console.error('Error during login:', errorText);
       }

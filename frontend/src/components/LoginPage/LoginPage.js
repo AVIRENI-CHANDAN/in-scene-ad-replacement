@@ -24,11 +24,6 @@ function LoginPage() {
       return;
     }
 
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
     try {
       const payload = { username, password };
       const response = await fetch('/auth/login', {

@@ -23,7 +23,7 @@ if __name__ == "__main__":
     CORS(
         app,
         resources={
-            r"*": {  # Apply CORS only to endpoints under /auth/
+            r"/auth/*": {  # Apply CORS only to endpoints under /auth/
                 "origins": [
                     "http://localhost:3000",
                     "http://localhost:5000",

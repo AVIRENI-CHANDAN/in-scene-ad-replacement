@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './LoginPage.module.scss';
 
@@ -8,8 +8,31 @@ function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const verifyAccessToken = async () => {
+      try {
+        const response = await fetch('/auth/verify_access_token', {
+          method: 'POST',
+          credentials: 'include',  // Include cookies in the request
+        });
+
+        if (response.ok) {
+          // If the access token is valid, redirect to the dashboard
+          navigate('/dashboard');
+        }
+        else {
+          console.error("Invalid token");
+        }
+      } catch (error) {
+        console.error('Error verifying access token:', error);
+      }
+    };
+
+    verifyAccessToken();
+  }, [navigate]);
+
   const handleLogin = async (event) => {
-    event.preventDefault(); // Prevent the default form submission behavior
+    event.preventDefault();
 
     // Basic client-side validation for username and password
     if (!username || username.length < 3) {
@@ -35,7 +58,7 @@ function LoginPage() {
         // On successful login, navigate to the dashboard
         navigate('/dashboard');
       } else {
-        const errorText = await response.text(); // Get the raw response text
+        const errorText = await response.text();
 
         try {
           const errorData = JSON.parse(errorText); // Attempt to parse JSON if possible

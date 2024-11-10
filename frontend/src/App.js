@@ -4,6 +4,7 @@ import './App.css';
 import { AuthProvider } from './components/AuthContext';
 import LandingPage from './components/LandingPage/LandingPage';
 import NavigationBar from './components/NavigationBar/NavigationBar';
+import NotFound from './components/NotFound/NotFound';
 import RegistrationPage from './components/RegistrationPage/RegistrationPage';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/signup" element={<RegistrationPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </div>

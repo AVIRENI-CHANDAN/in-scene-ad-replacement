@@ -4,6 +4,8 @@ from functools import wraps
 from http import HTTPStatus
 
 import boto3
+import jwt
+import requests
 from flask import current_app as app
 from flask import jsonify, make_response, request, send_from_directory
 
@@ -152,6 +154,65 @@ def register_cognito_auth_endpoints():
 
         return wrapper
 
+    def decode_and_verify_token(token, is_id_token=True):
+        """
+        Decodes and verifies the given token (ID or access) against the public keys from AWS Cognito.
+
+        Args:
+            token (str): The token to verify.
+            is_id_token (bool): Flag indicating if the token is an ID token (True) or access token (False).
+
+        Returns:
+            dict: Decoded token if verification is successful.
+        """
+        region = get_environment_variable("AWS_REGION")
+        user_pool_id = get_environment_variable("USER_POOL_ID")
+        cognito_client_id = get_environment_variable("COGNITO_CLIENT_ID")
+
+        # URL for Cognito's JWKS (JSON Web Key Set)
+        cognito_keys_url = f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json"
+        jwks_client = jwt.PyJWKClient(cognito_keys_url)
+
+        try:
+            # Retrieve the signing key from Cognito based on the token's key ID
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+
+            # Prepare verification options based on token type
+            verification_options = {
+                "algorithms": ["RS256"],
+                "issuer": f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}",
+            }
+
+            if is_id_token:
+                # Set audience for ID token
+                verification_options["audience"] = cognito_client_id
+            else:
+                # Disable audience verification for access tokens, as they often lack the 'aud' claim
+                verification_options["options"] = {"verify_aud": False}
+
+            # Decode the token using the signing key
+            decoded_token = jwt.decode(token, signing_key.key, **verification_options)
+
+            print(
+                "Decoded token:", decoded_token
+            )  # Debugging: Print the decoded token to inspect claims
+            return decoded_token
+
+        except jwt.ExpiredSignatureError:
+            print("Token has expired.")
+            raise jwt.ExpiredSignatureError("Token has expired")
+        except jwt.InvalidAudienceError:
+            print(
+                "Invalid audience claim in token. Verify if 'audience' should match 'user_pool_id' instead of 'cognito_client_id'."
+            )
+            raise jwt.InvalidAudienceError("Invalid audience in token")
+        except jwt.InvalidIssuerError:
+            print("Invalid issuer claim in token.")
+            raise jwt.InvalidIssuerError("Invalid issuer in token")
+        except jwt.PyJWTError as e:
+            print(f"Token verification failed with error: {e}")
+            raise jwt.InvalidTokenError("Invalid token")
+
     @app.route("/auth/register", methods=["POST"])
     @validate_input
     def register_user():
@@ -257,3 +318,90 @@ def register_cognito_auth_endpoints():
         except Exception as e:
             print(f"Login error: {e}")
             return jsonify({"error": str(e)}), HTTPStatus.INTERNAL_SERVER_ERROR
+
+    @app.route("/auth/verify_access_token", methods=["POST"])
+    def verify_access_token():
+        """
+        Verify the given access token stored in an HTTP-only secure cookie against AWS Cognito.
+
+        Returns:
+            Response: JSON indicating verification success or failure, with relevant HTTP status.
+        """
+        # Retrieve the token from the secure HTTP-only cookie
+        access_token = request.cookies.get("access_token")
+        id_token = request.cookies.get("id_token")
+        if not access_token:
+            return (
+                jsonify({"error": "Access token is missing in cookies"}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+
+        try:
+            # Decode and verify the token
+            decoded_token = decode_and_verify_token(access_token, is_id_token=False)
+            decoded_id_token = decode_and_verify_token(id_token, is_id_token=True)
+            return (
+                jsonify(
+                    {
+                        "message": "Token is valid",
+                        "decoded_token": decoded_token,
+                        "decoded_id_token": decoded_id_token,
+                    }
+                ),
+                HTTPStatus.OK,
+            )
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token has expired"}), HTTPStatus.UNAUTHORIZED
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Invalid token"}), HTTPStatus.UNAUTHORIZED
+        except Exception as e:
+            print(f"Token verification error: {e}")
+            return (
+                jsonify({"error": "Failed to verify token"}),
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+
+    @app.route("/auth/refresh_token", methods=["POST"])
+    def refresh_access_token():
+        """
+        Refreshes the access token using the refresh token stored in an HTTP-only secure cookie.
+
+        Returns:
+            Response: JSON indicating success with a new access token or an error message with relevant HTTP status.
+        """
+        # Retrieve the refresh token from the secure HTTP-only cookie
+        refresh_token = request.cookies.get("refresh_token")
+
+        if not refresh_token:
+            return (
+                jsonify({"error": "Refresh token is missing in cookies"}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+
+        try:
+            # Call Cognito to refresh the tokens
+            response = cognito_client.initiate_auth(
+                ClientId=get_environment_variable("COGNITO_CLIENT_ID"),
+                AuthFlow="REFRESH_TOKEN_AUTH",
+                AuthParameters={"REFRESH_TOKEN": refresh_token},
+            )
+
+            # Extract the new access token
+            new_access_token = response["AuthenticationResult"]["AccessToken"]
+
+            # Create response and set the new access token in cookies
+            resp = make_response(
+                jsonify({"message": "Token refreshed successfully"}), HTTPStatus.OK
+            )
+            set_secure_http_only_cookie(resp, "access_token", new_access_token)
+
+            return resp
+
+        except cognito_client.exceptions.NotAuthorizedException:
+            return jsonify({"error": "Invalid refresh token"}), HTTPStatus.UNAUTHORIZED
+        except Exception as e:
+            print(f"Token refresh error: {e}")
+            return (
+                jsonify({"error": "Failed to refresh token"}),
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+            )

@@ -2,3 +2,6 @@ flask
 python-dotenv
 boto3
 flask-cors
+pyjwt
+requests
+cryptography

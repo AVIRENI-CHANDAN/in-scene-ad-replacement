@@ -197,25 +197,54 @@ def register_cognito_auth_endpoints():
     @validate_input
     def login_user_endpoint():
         """
-        Authenticate a user with AWS Cognito, returning JWT tokens for session management.
+        Authenticate a user with AWS Cognito, returning tokens as HTTP-only cookies.
 
         Expects JSON input with:
             - username (str): The user's username.
             - password (str): The user's password.
 
         Returns:
-            Response: JSON containing JWT tokens (ID, access, and refresh) or an error message.
+            Response: JSON containing a success message if login is successful, or an error message if failed.
         """
         try:
             # Authenticate user with Cognito
             data = request.json
-            response = login_user(data["username"], data["password"])
+            response_data = login_user(data["username"], data["password"])
             tokens = {
-                "id_token": response["AuthenticationResult"]["IdToken"],
-                "access_token": response["AuthenticationResult"]["AccessToken"],
-                "refresh_token": response["AuthenticationResult"]["RefreshToken"],
+                "id_token": response_data["AuthenticationResult"]["IdToken"],
+                "access_token": response_data["AuthenticationResult"]["AccessToken"],
+                "refresh_token": response_data["AuthenticationResult"]["RefreshToken"],
             }
-            return jsonify(tokens), HTTPStatus.OK
+
+            # Create response object
+            response = make_response(
+                jsonify({"message": "Login successful"}), HTTPStatus.OK
+            )
+
+            # Set cookies with HttpOnly, Secure, and SameSite attributes for each token
+            response.set_cookie(
+                "id_token",
+                tokens["id_token"],
+                httponly=True,
+                secure=True,
+                samesite="Strict",
+            )
+            response.set_cookie(
+                "access_token",
+                tokens["access_token"],
+                httponly=True,
+                secure=True,
+                samesite="Strict",
+            )
+            response.set_cookie(
+                "refresh_token",
+                tokens["refresh_token"],
+                httponly=True,
+                secure=True,
+                samesite="Strict",
+            )
+
+            return response
 
         except cognito_client.exceptions.NotAuthorizedException:
             return (

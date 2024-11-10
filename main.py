@@ -28,7 +28,7 @@ if __name__ == "__main__":
                     "http://localhost:3000",
                     "http://localhost:5000",
                 ],  # Specify allowed origins
-                "methods": ["GET", "POST"],  # Only allow POST requests
+                "methods": ["GET", "POST"],
             }
         },
     )

@@ -9,9 +9,16 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    if (!username || username.length < 3) {
+      setErrorMessage('Username must be at least 3 characters');
+      return;
+    }
+    if (!password || password.length < 8) {
+      setErrorMessage('Password must be at least 8 characters');
+      return;
+    }
     try {
       const payload = { username, password };
-      console.log("Payload being sent:", payload);
 
       const response = await fetch('/auth/login', {
         method: 'POST',
@@ -46,7 +53,7 @@ function LoginPage() {
   return (
     <div className={styles.Login}>
       <h1>Login</h1>
-      <div className={styles.FormSection}>
+      <form className={styles.FormSection} onSubmit={handleLogin}>
         {errorMessage && <p className={styles.ErrorMessage}>{errorMessage}</p>}
 
         <label>Username</label>
@@ -65,10 +72,10 @@ function LoginPage() {
           required
         />
 
-        <button className={styles.SubmitButton} onClick={handleLogin}>
+        <button className={styles.SubmitButton}>
           Login
         </button>
-      </div>
+      </form>
     </div>
   );
 }

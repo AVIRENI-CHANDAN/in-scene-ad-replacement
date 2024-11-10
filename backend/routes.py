@@ -5,7 +5,7 @@ from http import HTTPStatus
 
 import boto3
 from flask import current_app as app
-from flask import jsonify, request, send_from_directory
+from flask import jsonify, make_response, request, send_from_directory
 
 from .cognito_util import cognito_client, login_user, sign_up, verify_sign_up
 from .environ import get_environment_variable
@@ -92,6 +92,23 @@ def register_cognito_auth_endpoints():
             bool: True if valid, False otherwise.
         """
         return bool(password and 8 <= len(password) <= 50)
+
+    def set_secure_http_only_cookie(response, cookie_name, value):
+        """
+        Set an HTTP-only secure cookie on the response for authentication tokens.
+
+        Args:
+            response (Response): Flask response object.
+            cookie_name (str): The name of the cookie to set.
+            value (str): The value to store in the cookie.
+        """
+        response.set_cookie(
+            cookie_name,
+            value,
+            httponly=True,
+            secure=True,
+            samesite="Strict",
+        )
 
     def validate_input(func):
         """
@@ -222,26 +239,12 @@ def register_cognito_auth_endpoints():
             )
 
             # Set cookies with HttpOnly, Secure, and SameSite attributes for each token
-            response.set_cookie(
-                "id_token",
-                tokens["id_token"],
-                httponly=True,
-                secure=True,
-                samesite="Strict",
+            set_secure_http_only_cookie(response, "id_token", tokens["id_token"])
+            set_secure_http_only_cookie(
+                response, "access_token", tokens["access_token"]
             )
-            response.set_cookie(
-                "access_token",
-                tokens["access_token"],
-                httponly=True,
-                secure=True,
-                samesite="Strict",
-            )
-            response.set_cookie(
-                "refresh_token",
-                tokens["refresh_token"],
-                httponly=True,
-                secure=True,
-                samesite="Strict",
+            set_secure_http_only_cookie(
+                response, "refresh_token", tokens["refresh_token"]
             )
 
             return response

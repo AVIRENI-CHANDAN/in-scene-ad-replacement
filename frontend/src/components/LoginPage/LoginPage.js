@@ -24,6 +24,11 @@ function LoginPage() {
       return;
     }
 
+    if (email.length < 5 || password.length < 5) {
+      setError('Email and password must be at least 5 characters long');
+      return;
+    }
+
     try {
       const payload = { username, password };
       const response = await fetch('/auth/login', {

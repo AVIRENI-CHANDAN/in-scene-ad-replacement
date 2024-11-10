@@ -42,7 +42,12 @@ function LoginPage() {
         login(); // Call login() to update isAuthenticated in AuthContext
         navigate('/dashboard'); // Navigate to dashboard only after successful login
       } else {
-        const errorData = await response.json();
+        let errorData;
+        try {
+            errorData = await response.json();
+        } catch (e) {
+            errorData = { error: 'Unable to process server response' };
+        }
         setErrorMessage(errorData.error || 'Login failed');
       }
     } catch (error) {

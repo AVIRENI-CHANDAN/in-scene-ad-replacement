@@ -20,12 +20,12 @@ function LoginPage() {
     event.preventDefault();
 
     if (!username || !password) {
-      setError('Please fill in all fields');
+      setErrorMessage('Please fill in all fields');
       return;
     }
 
     if (username.length < 5 || password.length < 5) {
-      setError('Email and password must be at least 5 characters long');
+      setErrorMessage('Email and password must be at least 5 characters long');
       return;
     }
 

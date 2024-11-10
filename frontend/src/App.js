@@ -7,19 +7,28 @@ import LandingPage from './components/LandingPage/LandingPage';
 import LoginPage from './components/LoginPage/LoginPage';
 import NavigationBar from './components/NavigationBar/NavigationBar';
 import NotFound from './components/NotFound/NotFound';
+import ProtectedRoute from './components/ProtectedRoute';
 import RegistrationPage from './components/RegistrationPage/RegistrationPage';
 
 function App() {
   return (
     <AuthProvider>
-      <div className='App'>
-        <NavigationBar></NavigationBar>
-        <div className='PageWrapper'>
+      <div className="App">
+        <NavigationBar />
+        <div className="PageWrapper">
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/signup" element={<RegistrationPage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              {/* Add other authenticated routes here */}
+            </Route>
+
+            {/* Fallback for unknown routes */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

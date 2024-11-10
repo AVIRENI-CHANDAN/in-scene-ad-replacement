@@ -1,79 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 import styles from './LoginPage.module.scss';
 
 function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const verifyAccessToken = async () => {
-      try {
-        const response = await fetch('/auth/verify_access_token', {
-          method: 'POST',
-          credentials: 'include',  // Include cookies in the request
-        });
-
-        if (response.ok) {
-          // If the access token is valid, redirect to the dashboard
-          navigate('/dashboard');
-        }
-        else {
-          console.error("Invalid token");
-        }
-      } catch (error) {
-        console.error('Error verifying access token:', error);
-      }
-    };
-
-    verifyAccessToken();
-  }, [navigate]);
+    if (isAuthenticated) {
+      navigate('/dashboard'); // Redirect to dashboard if already authenticated
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
 
-    // Basic client-side validation for username and password
-    if (!username || username.length < 3) {
-      setErrorMessage('Username must be at least 3 characters');
-      return;
-    }
-    if (!password || password.length < 8) {
-      setErrorMessage('Password must be at least 8 characters');
-      return;
-    }
-
     try {
       const payload = { username, password };
-
       const response = await fetch('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        credentials: 'include',  // Include cookies in the request
+        credentials: 'include',
       });
 
       if (response.ok) {
-        // On successful login, navigate to the dashboard
-        navigate('/dashboard');
+        login(); // Call login() to update isAuthenticated in AuthContext
+        navigate('/dashboard'); // Navigate to dashboard only after successful login
       } else {
-        const errorText = await response.text();
-
-        try {
-          const errorData = JSON.parse(errorText); // Attempt to parse JSON if possible
-          setErrorMessage(errorData.error || 'Login failed');
-        } catch {
-          setErrorMessage(
-            navigator.onLine
-              ? 'Server error: Unable to process login request'
-              : 'Network error: Please check your internet connection'
-          );
-        }
-        console.error('Error during login:', errorText);
+        const errorData = await response.json();
+        setErrorMessage(errorData.error || 'Login failed');
       }
     } catch (error) {
-      console.error('Error during login:', error);
       setErrorMessage('An error occurred during login. Please try again.');
     }
   };

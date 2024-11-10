@@ -181,6 +181,7 @@ def register_cognito_auth_endpoints():
             verification_options = {
                 "algorithms": ["RS256"],
                 "issuer": f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}",
+                "leeway": 60,  # Add a 60-second leeway to account for clock skew
             }
 
             if is_id_token:
@@ -398,10 +399,33 @@ def register_cognito_auth_endpoints():
             return resp
 
         except cognito_client.exceptions.NotAuthorizedException:
-            return jsonify({"error": "Invalid refresh token"}), HTTPStatus.UNAUTHORIZED
+            # Handle expired or invalid refresh token
+            print("Refresh token has expired or is invalid.")
+            response = make_response(
+                jsonify({"error": "Refresh token has expired. Please log in again."}),
+                HTTPStatus.UNAUTHORIZED,
+            )
+            # Clear cookies
+            response.set_cookie("access_token", "", expires=0)
+            response.set_cookie("id_token", "", expires=0)
+            response.set_cookie("refresh_token", "", expires=0)
+            return response
         except Exception as e:
             print(f"Token refresh error: {e}")
             return (
                 jsonify({"error": "Failed to refresh token"}),
                 HTTPStatus.INTERNAL_SERVER_ERROR,
             )
+
+    @app.route("/auth/logout", methods=["POST"])
+    def logout():
+        """
+        Clears authentication cookies on logout.
+        """
+        response = make_response(
+            jsonify({"message": "Logout successful"}), HTTPStatus.OK
+        )
+        response.set_cookie("access_token", "", expires=0)
+        response.set_cookie("id_token", "", expires=0)
+        response.set_cookie("refresh_token", "", expires=0)
+        return response

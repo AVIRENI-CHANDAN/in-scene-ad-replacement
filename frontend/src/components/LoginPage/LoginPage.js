@@ -44,9 +44,9 @@ function LoginPage() {
       } else {
         let errorData;
         try {
-            errorData = await response.json();
+          errorData = await response.json();
         } catch (e) {
-            errorData = { error: 'Unable to process server response' };
+          errorData = { error: 'Unable to process server response' };
         }
         setErrorMessage(errorData.error || 'Login failed');
       }

@@ -10,6 +10,8 @@ function LoginPage() {
 
   const handleLogin = async (event) => {
     event.preventDefault(); // Prevent the default form submission behavior
+
+    // Basic client-side validation for username and password
     if (!username || username.length < 3) {
       setErrorMessage('Username must be at least 3 characters');
       return;
@@ -18,6 +20,7 @@ function LoginPage() {
       setErrorMessage('Password must be at least 8 characters');
       return;
     }
+
     try {
       const payload = { username, password };
 
@@ -25,13 +28,11 @@ function LoginPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        credentials: 'include',  // Include cookies in the request
       });
 
       if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('id_token', data.id_token);
-        localStorage.setItem('refresh_token', data.refresh_token);
+        // On successful login, navigate to the dashboard
         navigate('/dashboard');
       } else {
         const errorText = await response.text(); // Get the raw response text
@@ -41,7 +42,7 @@ function LoginPage() {
           setErrorMessage(errorData.error || 'Login failed');
         } catch {
           setErrorMessage(
-            navigator.onLine 
+            navigator.onLine
               ? 'Server error: Unable to process login request'
               : 'Network error: Please check your internet connection'
           );
@@ -53,7 +54,6 @@ function LoginPage() {
       setErrorMessage('An error occurred during login. Please try again.');
     }
   };
-
 
   return (
     <div className={styles.Login}>
@@ -77,7 +77,7 @@ function LoginPage() {
           required
         />
 
-        <button className={styles.SubmitButton}>
+        <button className={styles.SubmitButton} type="submit">
           Login
         </button>
       </form>

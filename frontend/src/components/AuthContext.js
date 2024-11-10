@@ -5,12 +5,16 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const login = () => setIsAuthenticated(true);
+    const login = () => {
+        setIsAuthenticated(true);
+    };
+
 
     const logout = async () => {
-        await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
         setIsAuthenticated(false);
+        await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
     };
 
     useEffect(() => {
@@ -21,8 +25,12 @@ export function AuthProvider({ children }) {
                     credentials: 'include',
                 });
                 setIsAuthenticated(response.ok);
+                console.log("Auth status:", response.ok); // Log authentication status
             } catch (error) {
                 console.error('Error checking authentication status:', error);
+            } finally {
+                setLoading(false); // Set loading to false after check
+                console.log("Loading status:", loading); // Log loading status
             }
         };
 
@@ -30,7 +38,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

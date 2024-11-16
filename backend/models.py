@@ -19,7 +19,7 @@ def create_db_models():
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))
+    title = db.Column(db.String(100), nullable=False, default='Untitled Project')
     description = db.Column(db.Text)
 
 

@@ -34,4 +34,4 @@ class Annotation(db.Model):
     project_id = db.Column(db.Integer, db.ForeignKey("project.id"), nullable=False)
     timestamp = db.Column(db.Float)
     points = db.Column(db.JSON)
-    image_url = db.Column(db.String(200))
+    image_url = db.Column(db.String(2048))

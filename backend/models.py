@@ -25,7 +25,7 @@ class Project(db.Model):
 
 class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    project_id = db.Column(db.Integer, db.ForeignKey("project.id"), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey("project.id"), nullable=False, index=True)
     filename = db.Column(db.String(100))
 
 

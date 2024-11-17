@@ -8,10 +8,15 @@ function NewProject() {
   const [error, setError] = React.useState('');
   const navigate = useNavigate();
 
-  const formSubmit = (event) => {
+  const formSubmit = async (event) => {
     event.preventDefault();
+    if (!projectTitle.trim() || !projectDescription.trim()) {
+      setError('Project title and description are required');
+      return;
+    }
+    setError('');
     console.log("Form submit");
-    fetch("/api/projects", {
+    await fetch("/api/projects", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -23,14 +28,14 @@ function NewProject() {
 
     }).then((response) => {
       if (response.ok) {
-        setProjectDescription('');
-        setProjectTitle('');
-        navigate("/dashboard");
+        response.json().then(data => {
+          setProjectTitle('');
+          setProjectDescription('');
+          navigate('/dashboard');
+        });
+      } else {
+        response.json().then(data => setError(data.error));
       }
-      return response.json().then((data) => {
-        console.log("Data", data);
-        setError(data.error || "An unknown error occurred.");
-      });
     }).catch((error) => {
       setError("A network error occurred. Please try again later.");
     });

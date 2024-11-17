@@ -477,10 +477,8 @@ def register_projects_endpoint():
         sha256_hash = hashlib.sha256(input_string.encode()).digest()
 
         # Encode hash in Base64
-        base64_encoded = base64.urlsafe_b64encode(sha256_hash).decode()
+        coded_string = base64.urlsafe_b64encode(sha256_hash).decode()
 
-        # Repeat/extend to make exactly 255 characters
-        coded_string = (base64_encoded * ((255 // len(base64_encoded)) + 1))[:255]
         return coded_string
 
     def secure_filename(file_name: str) -> str:

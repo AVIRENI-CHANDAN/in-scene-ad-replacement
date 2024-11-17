@@ -88,7 +88,7 @@ def sign_up(
         ClientId=get_environment_variable("COGNITO_CLIENT_ID"),
         Username=username,
         Password=password,
-        UserAttributes={*user_attributes, {"Name": "email", "Value": email}},
+        UserAttributes=[*user_attributes, {"Name": "email", "Value": email}],
     )
 
 

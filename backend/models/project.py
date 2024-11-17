@@ -10,7 +10,7 @@ Key Features:
 
 Model Attributes:
 - id (int): The unique identifier for the project.
-- username (str): The username associated with the project.
+- sub (str): The sub of user associated with the project.
 - title (str): The title of the project, defaulting to "Untitled Project".
 - description (str): A textual description of the project.
 
@@ -22,7 +22,7 @@ Example:
     from backend.models.project import Project
 
     new_project = Project(
-        username="user1", 
+        sub="user1", 
         title="My First Project", 
         description="This is a description of my first project."
     )
@@ -36,11 +36,11 @@ class Project(db.Model):
 
     This class defines the structure of the `Project` entity, which stores information
     related to user projects. Each project includes a title, a description, and is
-    associated with a specific user through the username attribute.
+    associated with a specific user through the sub attribute of user.
 
     Attributes:
         id (int): The unique identifier for the project.
-        username (str): The username associated with the project.
+        sub (str): The sub of the user associated with the project.
         title (str): The title of the project, defaulting to "Untitled Project".
         description (str): A textual description of the project.
 
@@ -51,13 +51,13 @@ class Project(db.Model):
 
     Example:
         >>> new_project = Project(
-            username="user1",
+            sub="asdf9u-fvdf9u8y-9sud9f-sdf8sdj8",
             title="My First Project",
             description="This is a description of my first project."
         )
     """
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(255), nullable=False, unique=False, index=True)
+    sub = db.Column(db.String(255), nullable=False, unique=False, index=True)
     title = db.Column(db.String(100), nullable=False, default="Untitled Project")
     description = db.Column(db.Text)

@@ -13,6 +13,93 @@ from .cognito_util import cognito_client, login_user, sign_up, verify_sign_up
 from .environ import get_environment_variable
 
 
+def decode_and_verify_token(token, is_id_token=True):
+    """
+    Decodes and verifies the given token (ID or access) against the public keys from AWS Cognito.
+
+    Args:
+        token (str): The token to verify.
+        is_id_token (bool): Flag indicating if the token is an ID token (True) or access token (False).
+
+    Returns:
+        dict: Decoded token if verification is successful.
+    """
+    region = get_environment_variable("AWS_REGION")
+    user_pool_id = get_environment_variable("USER_POOL_ID")
+    cognito_client_id = get_environment_variable("COGNITO_CLIENT_ID")
+
+    # URL for Cognito's JWKS (JSON Web Key Set)
+    cognito_keys_url = f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json"
+    jwks_client = jwt.PyJWKClient(cognito_keys_url)
+
+    try:
+        # Retrieve the signing key from Cognito based on the token's key ID
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+
+        # Prepare verification options based on token type
+        verification_options = {
+            "algorithms": ["RS256"],
+            "issuer": f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}",
+            "leeway": 60,  # Add a 60-second leeway to account for clock skew
+        }
+
+        if is_id_token:
+            # Set audience for ID token
+            verification_options["audience"] = cognito_client_id
+        else:
+            # Disable audience verification for access tokens, as they often lack the 'aud' claim
+            verification_options["options"] = {"verify_aud": False}
+
+        # Decode the token using the signing key
+        decoded_token = jwt.decode(token, signing_key.key, **verification_options)
+
+        print(
+            "Decoded token:", decoded_token
+        )  # Debugging: Print the decoded token to inspect claims
+        return decoded_token
+
+    except jwt.ExpiredSignatureError:
+        print("Token has expired.")
+        raise jwt.ExpiredSignatureError("Token has expired")
+    except jwt.InvalidAudienceError:
+        print(
+            "Invalid audience claim in token. Verify if 'audience' should match 'user_pool_id' instead of 'cognito_client_id'."
+        )
+        raise jwt.InvalidAudienceError("Invalid audience in token")
+    except jwt.InvalidIssuerError:
+        print("Invalid issuer claim in token.")
+        raise jwt.InvalidIssuerError("Invalid issuer in token")
+    except jwt.PyJWTError as e:
+        print(f"Token verification failed with error: {e}")
+        raise jwt.InvalidTokenError("Invalid token")
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        token = request.cookies.get("id_token")  # Or use access_token if preferred
+
+        if not token:
+            return jsonify({"error": "Authorization required"}), HTTPStatus.UNAUTHORIZED
+
+        try:
+            # Decode and verify the token
+            decoded_token = decode_and_verify_token(token)
+            # You can add any additional verification logic here if needed
+            request.user = (
+                decoded_token  # Store the decoded token if you want user info
+            )
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token has expired"}), HTTPStatus.UNAUTHORIZED
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Invalid token"}), HTTPStatus.UNAUTHORIZED
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
 def register_react_base():
     """
     Registers the route to serve the base React application.
@@ -153,66 +240,6 @@ def register_cognito_auth_endpoints():
             return func(*args, **kwargs)
 
         return wrapper
-
-    def decode_and_verify_token(token, is_id_token=True):
-        """
-        Decodes and verifies the given token (ID or access) against the public keys from AWS Cognito.
-
-        Args:
-            token (str): The token to verify.
-            is_id_token (bool): Flag indicating if the token is an ID token (True) or access token (False).
-
-        Returns:
-            dict: Decoded token if verification is successful.
-        """
-        region = get_environment_variable("AWS_REGION")
-        user_pool_id = get_environment_variable("USER_POOL_ID")
-        cognito_client_id = get_environment_variable("COGNITO_CLIENT_ID")
-
-        # URL for Cognito's JWKS (JSON Web Key Set)
-        cognito_keys_url = f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json"
-        jwks_client = jwt.PyJWKClient(cognito_keys_url)
-
-        try:
-            # Retrieve the signing key from Cognito based on the token's key ID
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
-
-            # Prepare verification options based on token type
-            verification_options = {
-                "algorithms": ["RS256"],
-                "issuer": f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}",
-                "leeway": 60,  # Add a 60-second leeway to account for clock skew
-            }
-
-            if is_id_token:
-                # Set audience for ID token
-                verification_options["audience"] = cognito_client_id
-            else:
-                # Disable audience verification for access tokens, as they often lack the 'aud' claim
-                verification_options["options"] = {"verify_aud": False}
-
-            # Decode the token using the signing key
-            decoded_token = jwt.decode(token, signing_key.key, **verification_options)
-
-            print(
-                "Decoded token:", decoded_token
-            )  # Debugging: Print the decoded token to inspect claims
-            return decoded_token
-
-        except jwt.ExpiredSignatureError:
-            print("Token has expired.")
-            raise jwt.ExpiredSignatureError("Token has expired")
-        except jwt.InvalidAudienceError:
-            print(
-                "Invalid audience claim in token. Verify if 'audience' should match 'user_pool_id' instead of 'cognito_client_id'."
-            )
-            raise jwt.InvalidAudienceError("Invalid audience in token")
-        except jwt.InvalidIssuerError:
-            print("Invalid issuer claim in token.")
-            raise jwt.InvalidIssuerError("Invalid issuer in token")
-        except jwt.PyJWTError as e:
-            print(f"Token verification failed with error: {e}")
-            raise jwt.InvalidTokenError("Invalid token")
 
     @app.route("/auth/register", methods=["POST"])
     @validate_input
@@ -418,6 +445,7 @@ def register_cognito_auth_endpoints():
             )
 
     @app.route("/auth/logout", methods=["POST"])
+    @login_required
     def logout():
         """
         Clears authentication cookies on logout.
@@ -429,3 +457,63 @@ def register_cognito_auth_endpoints():
         response.set_cookie("id_token", "", expires=0)
         response.set_cookie("refresh_token", "", expires=0)
         return response
+
+
+def register_projects_endpoint():
+    @app.route("/api/projects", methods=["POST"])
+    @login_required
+    def create_project():
+        data = request.json
+        project = Project(title=data["title"], description=data["description"])
+        db.session.add(project)
+        db.session.commit()
+        return jsonify({"message": "Project created", "project_id": project.id}), 201
+
+    @app.route("/api/projects", methods=["GET"])
+    @login_required
+    def list_projects():
+        projects = Project.query.all()
+        return jsonify(
+            [
+                {"id": p.id, "title": p.title, "description": p.description}
+                for p in projects
+            ]
+        )
+
+    @app.route("/api/projects/<int:project_id>/upload", methods=["POST"])
+    @login_required
+    def upload_video(project_id):
+        video = request.files["video"]
+        filename = secure_filename(video.filename)
+        path = os.path.join("uploads", filename)
+        video.save(path)
+
+        video_entry = Video(project_id=project_id, filename=filename)
+        db.session.add(video_entry)
+        db.session.commit()
+
+        return jsonify({"message": "Video uploaded", "video_id": video_entry.id}), 201
+
+    @app.route("/api/projects/<int:project_id>/annotations", methods=["POST"])
+    @login_required
+    def add_annotations(project_id):
+        data = request.json
+        annotations = [
+            Annotation(
+                project_id=project_id,
+                timestamp=entry["timestamp"],
+                points=entry["points"],
+                image_url=entry["image_url"],
+            )
+            for entry in data["annotations"]
+        ]
+        db.session.bulk_save_objects(annotations)
+        db.session.commit()
+        return jsonify({"message": "Annotations added"}), 201
+
+    @app.route("/api/projects/<int:project_id>/apply", methods=["POST"])
+    @login_required
+    def apply_annotations(project_id):
+        # Locate video, load annotations, and process frames
+        # Use OpenCV to overlay images at specified timestamps
+        pass

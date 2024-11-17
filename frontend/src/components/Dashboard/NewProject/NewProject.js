@@ -6,6 +6,8 @@ function NewProject() {
   const [projectTitle, setProjectTitle] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const navigate = useNavigate();
 
   const formSubmit = async (event) => {
@@ -69,7 +71,13 @@ function NewProject() {
                   <input className={styles.FormField} type='text' placeholder='Project Description' autoComplete='off' value={projectDescription} onChange={handleDescriptionChange} />
                 </div>
                 <div className={styles.FormGroup}>
-                  <button className={styles.FormButton} type='submit'>Create Project</button>
+                  <button
+                    className={styles.FormButton}
+                    type='submit'
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Creating...' : 'Create Project'}
+                  </button>
                 </div>
               </form>
             </div>

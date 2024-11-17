@@ -1,3 +1,5 @@
+import base64
+import hashlib
 import os
 import re
 from functools import wraps
@@ -7,10 +9,9 @@ import jwt
 from flask import current_app as app
 from flask import jsonify, make_response, request, send_from_directory
 
+from backend.models import Annotation, Project, Video, save_object, save_objects
 from backend.utils import get_environment_variable
 from backend.utils.cognito import cognito_client, login_user, sign_up, verify_sign_up
-
-from .models import Project
 
 
 def decode_and_verify_token(token, is_id_token=True):
@@ -19,7 +20,8 @@ def decode_and_verify_token(token, is_id_token=True):
 
     Args:
         token (str): The token to verify.
-        is_id_token (bool): Flag indicating if the token is an ID token (True) or access token (False).
+        is_id_token (bool): Flag indicating if the token is an ID token (True)
+        or access token (False).
 
     Returns:
         dict: Decoded token if verification is successful.
@@ -29,7 +31,8 @@ def decode_and_verify_token(token, is_id_token=True):
     cognito_client_id = get_environment_variable("COGNITO_CLIENT_ID")
 
     # URL for Cognito's JWKS (JSON Web Key Set)
-    cognito_keys_url = f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}/.well-known/jwks.json"
+    cognito_keys_domain = f"https://cognito-idp.{region}.amazonaws.com"
+    cognito_keys_url = f"{cognito_keys_domain}/{user_pool_id}/.well-known/jwks.json"
     jwks_client = jwt.PyJWKClient(cognito_keys_url)
 
     try:
@@ -39,7 +42,7 @@ def decode_and_verify_token(token, is_id_token=True):
         # Prepare verification options based on token type
         verification_options = {
             "algorithms": ["RS256"],
-            "issuer": f"https://cognito-idp.{region}.amazonaws.com/{user_pool_id}",
+            "issuer": f"{cognito_keys_domain}/{user_pool_id}",
             "leeway": 60,  # Add a 60-second leeway to account for clock skew
         }
 
@@ -58,20 +61,21 @@ def decode_and_verify_token(token, is_id_token=True):
         )  # Debugging: Print the decoded token to inspect claims
         return decoded_token
 
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as err:
         print("Token has expired.")
-        raise jwt.ExpiredSignatureError("Token has expired")
-    except jwt.InvalidAudienceError:
+        raise jwt.ExpiredSignatureError("Token has expired") from err
+    except jwt.InvalidAudienceError as err:
+        print("Invalid audience claim in token.")
         print(
-            "Invalid audience claim in token. Verify if 'audience' should match 'user_pool_id' instead of 'cognito_client_id'."
+            "Verify if 'audience' should match 'user_pool_id' instead of 'cognito_client_id'."
         )
-        raise jwt.InvalidAudienceError("Invalid audience in token")
-    except jwt.InvalidIssuerError:
+        raise jwt.InvalidAudienceError("Invalid audience in token") from err
+    except jwt.InvalidIssuerError as err:
         print("Invalid issuer claim in token.")
-        raise jwt.InvalidIssuerError("Invalid issuer in token")
+        raise jwt.InvalidIssuerError("Invalid issuer in token") from err
     except jwt.PyJWTError as e:
         print(f"Token verification failed with error: {e}")
-        raise jwt.InvalidTokenError("Invalid token")
+        raise jwt.InvalidTokenError("Invalid token") from e
 
 
 def login_required(f):
@@ -104,7 +108,10 @@ def register_react_base():
     """
     Registers the route to serve the base React application.
 
-    This function configures the root and dynamic paths to serve the `index.html` file, enabling support for a single-page React frontend. It also allows static assets such as `.js`, `.css`, and image files to be served when requested.
+    This function configures the root and dynamic paths to serve the `index.
+    html` file, enabling support for a single-page React frontend. It also
+    allows static assets such as `.js`, `.css`, and image files to be served
+    when requested.
 
     Returns:
         None
@@ -117,11 +124,13 @@ def register_react_base():
         Serve static files for the React app based on the given path.
 
         Args:
-            path (str): Path to the requested file. If it's an empty string or not a
-                        recognized file type, `index.html` will be served by default.
+            path (str): Path to the requested file. If it's an empty string or
+            not a recognized file type, `index.html` will be served by default.
 
         Returns:
-            Response: The requested static file if found or the main `index.html` if the path is undefined, enabling single-page application behavior.
+            Response: The requested static file if found or the main `index.
+            html` if the path is undefined, enabling single-page application
+            behavior.
         """
         print(f"Attempting to serve path: {path}")
         try:
@@ -201,7 +210,8 @@ def register_cognito_auth_endpoints():
 
     def validate_input(func):
         """
-        Decorator function to validate the presence and format of `username` and `password` fields in the JSON request data.
+        Decorator function to validate the presence and format of `username`
+        and `password` fields in the JSON request data.
 
         Args:
             func (function): The function to be decorated.
@@ -310,7 +320,8 @@ def register_cognito_auth_endpoints():
             - password (str): The user's password.
 
         Returns:
-            Response: JSON containing a success message if login is successful, or an error message if failed.
+            Response: JSON containing a success message if login is successful,
+            or an error message if failed.
         """
         try:
             # Authenticate user with Cognito
@@ -395,7 +406,8 @@ def register_cognito_auth_endpoints():
         Refreshes the access token using the refresh token stored in an HTTP-only secure cookie.
 
         Returns:
-            Response: JSON indicating success with a new access token or an error message with relevant HTTP status.
+            Response: JSON indicating success with a new access token or an
+            error message with relevant HTTP status.
         """
         # Retrieve the refresh token from the secure HTTP-only cookie
         refresh_token = request.cookies.get("refresh_token")
@@ -460,6 +472,20 @@ def register_cognito_auth_endpoints():
 
 
 def register_projects_endpoint():
+    def generate_sha256_coded_string(input_string: str) -> str:
+        # Generate SHA-256 hash
+        sha256_hash = hashlib.sha256(input_string.encode()).digest()
+
+        # Encode hash in Base64
+        base64_encoded = base64.urlsafe_b64encode(sha256_hash).decode()
+
+        # Repeat/extend to make exactly 255 characters
+        coded_string = (base64_encoded * ((255 // len(base64_encoded)) + 1))[:255]
+        return coded_string
+
+    def secure_filename(file_name: str) -> str:
+        return generate_sha256_coded_string(file_name)
+
     @app.route("/api/projects", methods=["POST"])
     @login_required
     def create_project():
@@ -469,8 +495,7 @@ def register_projects_endpoint():
         if not data or "title" not in data or "description" not in data:
             return {"error": "Title and description are required"}, 400
         project = Project(title=data["title"], description=data["description"])
-        db.session.add(project)
-        db.session.commit()
+        save_object(project)
         return jsonify({"message": "Project created", "project_id": project.id}), 201
 
     @app.route("/api/projects", methods=["GET"])
@@ -497,8 +522,7 @@ def register_projects_endpoint():
         video.save(path)
 
         video_entry = Video(project_id=project_id, filename=filename)
-        db.session.add(video_entry)
-        db.session.commit()
+        save_object(video_entry)
 
         return jsonify({"message": "Video uploaded", "video_id": video_entry.id}), 201
 
@@ -515,9 +539,7 @@ def register_projects_endpoint():
             )
             for entry in data["annotations"]
         ]
-        with db.session.begin():
-            db.session.bulk_save_objects(annotations)
-        db.session.commit()
+        save_objects(annotations)
         return jsonify({"message": "Annotations added"}), 201
 
     @app.route("/api/projects/<int:project_id>/apply", methods=["POST"])
@@ -525,4 +547,4 @@ def register_projects_endpoint():
     def apply_annotations(project_id):
         # Locate video, load annotations, and process frames
         # Use OpenCV to overlay images at specified timestamps
-        pass
+        print(f"Applying annotation to project id: {project_id}")

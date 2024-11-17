@@ -1,3 +1,24 @@
+"""Main Module for the Backend Application
+
+This module serves as the entry point for the backend application, initializing the Flask
+app and setting up the necessary configurations and routes. It integrates various components
+such as database models, authentication endpoints, and CORS settings to ensure the application
+functions correctly.
+
+Key Features:
+- Creates and configures the Flask application instance.
+- Initializes the database and creates necessary models.
+- Registers API endpoints for authentication and project management.
+- Configures CORS to allow specific origins for API requests.
+
+Usage:
+To run the application, execute this module directly. It will start the Flask server and
+apply CORS settings to specified routes.
+
+Example:
+    python main.py
+"""
+
 import os
 
 from flask_cors import CORS

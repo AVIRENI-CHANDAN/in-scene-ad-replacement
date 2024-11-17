@@ -30,7 +30,7 @@ const Dashboard = () => {
 
   const handleCreateProject = () => {
     const newId = projects.length ? projects[projects.length - 1].id + 1 : 1;
-    const newProject = { id: newId, name: `Project ${newId}` };
+    const newProject = { id: newId, title: `Project ${newId}` };
     setProjects([...projects, newProject]);
   };
 

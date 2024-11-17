@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './NewProject.module.scss';
 
 function NewProject() {
-  const [projectTitle, setProjectTitle] = React.useState('');
-  const [projectDescription, setProjectDescription] = React.useState('');
-  const [error, setError] = React.useState('');
+  const [projectTitle, setProjectTitle] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const formSubmit = async (event) => {

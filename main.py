@@ -8,6 +8,7 @@ from backend import (
     get_environment_variable,
     initialize_db,
     register_cognito_auth_endpoints,
+    register_projects_endpoint,
     register_react_base,
     run_application,
 )
@@ -22,6 +23,7 @@ with app.app_context():
     create_db_models()
     register_react_base()
     register_cognito_auth_endpoints()
+    register_projects_endpoint()
 
 if __name__ == "__main__":
     CORS(

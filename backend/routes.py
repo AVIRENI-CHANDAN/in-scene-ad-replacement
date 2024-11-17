@@ -463,7 +463,11 @@ def register_projects_endpoint():
     @app.route("/api/projects", methods=["POST"])
     @login_required
     def create_project():
+        if not request.is_json:
+            return {"error": "Content-Type must be application/json"}, 400
         data = request.json
+        if not data or "title" not in data or "description" not in data:
+            return {"error": "Title and description are required"}, 400
         project = Project(title=data["title"], description=data["description"])
         db.session.add(project)
         db.session.commit()

@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import './App.css';
 import { AuthProvider } from './components/AuthContext';
 import Dashboard from './components/Dashboard/Dashboard';
+import NewProject from './components/Dashboard/NewProject/NewProject';
 import LandingPage from './components/LandingPage/LandingPage';
 import LoginPage from './components/LoginPage/LoginPage';
 import NavigationBar from './components/NavigationBar/NavigationBar';
@@ -25,6 +26,7 @@ function App() {
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/new/project" element={<NewProject />} />
               {/* Add other authenticated routes here */}
             </Route>
 

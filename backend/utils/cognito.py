@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 import boto3
 
 from backend.utils import get_environment_variable

@@ -12,7 +12,14 @@ const Dashboard = () => {
       try {
         const response = await fetch('/api/projects'); // Make the GET request
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorMessages = {
+            400: 'Invalid request. Please try again.',
+            401: 'Please log in to continue.',
+            403: 'You don\'t have permission to access this resource.',
+            404: 'Project data not found.',
+            500: 'Server error. Please try again later.'
+          };
+          throw new Error(errorMessages[response.status] || `Server error ${response.status}`);
         }
         const data = await response.json(); // Parse the response JSON
         console.log("Data", data);

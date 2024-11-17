@@ -507,7 +507,8 @@ def register_projects_endpoint():
             )
             for entry in data["annotations"]
         ]
-        db.session.bulk_save_objects(annotations)
+        with db.session.begin():
+            db.session.bulk_save_objects(annotations)
         db.session.commit()
         return jsonify({"message": "Annotations added"}), 201
 

@@ -55,5 +55,5 @@ def run_application(app: Flask, debug: bool = False) -> None:
     Examples:
         >>> run_application(app)
     """
-    debug = parse_bool(get_environment_variable("DEBUG")) or debug
-    app.run(debug=debug)
+    is_debug_mode = parse_bool(get_environment_variable("DEBUG")) or debug
+    app.run(debug=is_debug_mode)

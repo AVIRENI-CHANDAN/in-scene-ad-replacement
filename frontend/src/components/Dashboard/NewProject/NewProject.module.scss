@@ -1,0 +1,70 @@
+.NewProject {
+    height: 100%;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+
+    .Container {
+        box-shadow: 0 0 8px -6px black;
+        padding: 2rem;
+        border-radius: 12px;
+
+        .Wrapper {
+            display: flex;
+            flex-flow: column nowrap;
+            gap: 12px;
+
+            .Header {
+                font-weight: lighter;
+                font-size: 0.75rem;
+            }
+
+            .FormContainer {
+                .FormWrapper {
+                    display: flex;
+                    flex-flow: column nowrap;
+
+                    .FormError {
+                        color: red;
+                        font-size: 12px;
+                    }
+
+                    .Form {
+                        display: flex;
+                        flex-flow: column nowrap;
+                        gap: 8px;
+
+                        .FormGroup {
+                            display: flex;
+                            flex-flow: row wrap;
+
+                            .FormField {
+                                flex: 1 1 auto;
+                                padding: 12px;
+                                border-radius: 8px;
+                                outline: none;
+                                border: 1px solid lightgray;
+                            }
+
+                            .FormButton {
+                                flex: 1 1 auto;
+                                padding: 6px 12px;
+                                margin: 6px 0;
+                                cursor: pointer;
+                                border: 1px solid gray;
+                                background-color: transparent;
+                                border-radius: 8px;
+                                transition: box-shadow 0.2s ease-in-out;
+
+                                &:hover {
+                                    box-shadow: 0 0 4px gray;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

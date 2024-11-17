@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import styles from './Dashboard.module.scss';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [error, setError] = useState(null);    // State to store error messages
   const [loading, setLoading] = useState(true); // State to handle loading state
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Function to fetch projects from the API
@@ -36,9 +38,7 @@ const Dashboard = () => {
 
 
   const handleCreateProject = () => {
-    const newId = projects.length ? projects[projects.length - 1].id + 1 : 1;
-    const newProject = { id: newId, title: `Project ${newId}` };
-    setProjects([...projects, newProject]);
+    navigate("/new/project");
   };
 
   const handleDeleteProject = (projectId) => {

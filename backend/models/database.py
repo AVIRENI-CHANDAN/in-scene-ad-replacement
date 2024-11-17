@@ -112,9 +112,8 @@ def save_object(model_object: db.Model) -> None:
         )
         >>> save_object(new_annotation)
     """
-
-    db.session.add(model_object)
-    db.session.commit()
+    with db.session.begin():
+        db.session.add(model_object)
 
 
 def save_objects(object_list: List[db.Model]) -> None:

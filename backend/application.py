@@ -1,5 +1,3 @@
-import os
-
 from flask import Flask
 
 from backend.utils import get_environment_variable, parse_bool

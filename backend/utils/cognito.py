@@ -1,6 +1,50 @@
+"""Cognito Utility Module
+
+This module provides utility functions for interacting with AWS Cognito, enabling user
+registration, verification, and authentication. It utilizes the Boto3 library to communicate
+with AWS services and manage user accounts effectively.
+
+Key Features:
+- Registers new users with AWS Cognito.
+- Verifies user registration using confirmation codes.
+- Authenticates users and retrieves JWT tokens for session management.
+
+Functions:
+- sign_up(username: str, password: str, email: str, user_attributes: dict, *args, **kwargs) -> dict: 
+  Registers a new user with AWS Cognito and returns the response from the sign-up request.
+  
+- verify_sign_up(username: str, code: str) -> dict: 
+  Confirms a new user's registration using a verification code sent to their email.
+  
+- login_user(username: str, password: str) -> dict: 
+  Authenticates a user with AWS Cognito and returns JWT tokens for session management.
+
+Usage:
+This module is intended for use within the application to manage user accounts through AWS Cognito.
+It should be imported and utilized to handle user registration, verification, and authentication.
+
+Example:
+    from backend.utils.cognito import sign_up, verify_sign_up, login_user
+
+    # Register a new user
+    sign_up(
+        "testuser", 
+        "SecurePassword123", 
+        "test@example.com", [
+            {"Name": "email", "Value": "test@example.com"}
+        ]
+    )
+
+    # Verify the user's registration
+    verify_sign_up("testuser", "123456")
+
+    # Log in the user
+    login_user("testuser", "SecurePassword123")
+"""
+
 import boto3
 
-from backend.utils import get_environment_variable
+from backend.utils.environ import get_environment_variable
 
 # Initialize the Cognito client to interact with AWS Cognito
 cognito_client = boto3.client("cognito-idp")
@@ -32,13 +76,19 @@ def sign_up(
         username already existing, an error message is returned.
 
     Example:
-        >>> sign_up("testuser", "SecurePassword123", "test@example.com", [{"Name": "email", "Value": "test@example.com"}])
+        >>> sign_up(
+            "testuser",
+            "SecurePassword123",
+            "test@example.com", [
+                {"Name": "email", "Value": "test@example.com"}
+            ]
+        )
     """
     return cognito_client.sign_up(
         ClientId=get_environment_variable("COGNITO_CLIENT_ID"),
         Username=username,
         Password=password,
-        UserAttributes=user_attributes,
+        UserAttributes=[*user_attributes, {"Name": "email", "Value": email}],
     )
 
 

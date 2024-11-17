@@ -4,10 +4,9 @@ This module provides functions to create a Flask application instance and to run
 server. It includes configuration for debugging and allows customization through various parameters.
 
 Functions:
-    create_app(*args, **kwargs) -> Flask: Create and configure a new instance 
-    of a Flask application.
-    run_application(app: Flask, debug: bool = False) -> None: Start the Flask 
-    application server with optional debugging enabled.
+    create_app(*args, **kwargs) -> Flask: Create and configure new instance of a Flask application.
+    run_application(app: Flask, debug: bool = False) -> None: Start the Flask application server 
+    with optional debugging enabled.
 """
 
 from flask import Flask
@@ -19,8 +18,8 @@ def create_app(*args, **kwargs) -> Flask:
     """Create and configure a new instance of a Flask application.
 
     This function serves as a factory for creating Flask application instances, allowing for
-    customization through variable arguments and keyword arguments. It sets up the application
-    with the necessary configurations to handle web requests.
+    customization through variable arguments and keyword arguments. It sets up the application with
+    the necessary configurations to handle web requests.
 
     Args:
         *args: Variable length argument list for Flask initialization.
@@ -40,10 +39,10 @@ def create_app(*args, **kwargs) -> Flask:
 def run_application(app: Flask, debug: bool = False) -> None:
     """Start the Flask application server with optional debugging enabled.
 
-    This function launches the Flask application, allowing it to process incoming web requests.
-    It checks the environment variable "DEBUG" and the provided debug argument to determine
-    whether to run the application in debug mode, which provides detailed error messages and
-    automatic reloading during development.
+    This function launches the Flask application, allowing it to process incoming web requests. It
+    checks the environment variable "DEBUG" and the provided debug argument to determine whether to
+    run the application in debug mode, which provides detailed error messages and automatic
+    reloading during development.
 
     Args:
         app (Flask): The Flask application instance to be run.

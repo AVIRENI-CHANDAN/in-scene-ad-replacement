@@ -3,15 +3,13 @@ import re
 from functools import wraps
 from http import HTTPStatus
 
-import boto3
 import jwt
-import requests
 from flask import current_app as app
 from flask import jsonify, make_response, request, send_from_directory
 
 from backend.utils import get_environment_variable
+from backend.utils.cognito import cognito_client, login_user, sign_up, verify_sign_up
 
-from .cognito_util import cognito_client, login_user, sign_up, verify_sign_up
 from .models import Project
 
 

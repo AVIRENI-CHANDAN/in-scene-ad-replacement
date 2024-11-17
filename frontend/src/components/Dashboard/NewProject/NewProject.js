@@ -11,6 +11,7 @@ function NewProject() {
   const navigate = useNavigate();
 
   const formSubmit = async (event) => {
+    setIsSubmitting(true);
     event.preventDefault();
     if (!projectTitle.trim() || !projectDescription.trim()) {
       setError('Project title and description are required');
@@ -37,9 +38,11 @@ function NewProject() {
         });
       } else {
         response.json().then(data => setError(data.error));
+        setIsSubmitting(false);
       }
     }).catch((error) => {
       setError("A network error occurred. Please try again later.");
+      setIsSubmitting(false);
     });
   };
 

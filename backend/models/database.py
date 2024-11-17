@@ -141,4 +141,3 @@ def save_objects(object_list: List[db.Model]) -> None:
 
     with db.session.begin():
         db.session.bulk_save_objects(object_list)
-    db.session.commit()

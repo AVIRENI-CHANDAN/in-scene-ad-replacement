@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import boto3
 
-from .environ import get_environment_variable
+from backend.utils import get_environment_variable
 
 # Initialize the Cognito client to interact with AWS Cognito
 cognito_client = boto3.client("cognito-idp")

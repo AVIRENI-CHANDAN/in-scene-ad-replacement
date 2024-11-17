@@ -2,7 +2,7 @@ import os
 
 from flask import Flask
 
-from .environ import get_environment_variable, parse_bool
+from backend.utils import get_environment_variable, parse_bool
 
 
 def create_app(*args, **kwargs) -> Flask:

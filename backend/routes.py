@@ -9,8 +9,10 @@ import requests
 from flask import current_app as app
 from flask import jsonify, make_response, request, send_from_directory
 
+from backend.utils import get_environment_variable
+
 from .cognito_util import cognito_client, login_user, sign_up, verify_sign_up
-from .environ import get_environment_variable
+from .models import Project
 
 
 def decode_and_verify_token(token, is_id_token=True):
@@ -476,7 +478,11 @@ def register_projects_endpoint():
     @app.route("/api/projects", methods=["GET"])
     @login_required
     def list_projects():
-        projects = Project.query.all()
+        id_token = request.cookies.get("id_token")
+        decoded_id_token = decode_and_verify_token(id_token, is_id_token=True)
+        print("Decoded id token", decoded_id_token)
+        cognito_username = decoded_id_token["cognito:username"]
+        projects = Project.query.filter_by(username=cognito_username)
         return jsonify(
             [
                 {"id": p.id, "title": p.title, "description": p.description}

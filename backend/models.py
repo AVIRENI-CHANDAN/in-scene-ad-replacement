@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 
-from .environ import get_environment_variable
+from backend.utils import get_environment_variable
 
 db = SQLAlchemy()
 

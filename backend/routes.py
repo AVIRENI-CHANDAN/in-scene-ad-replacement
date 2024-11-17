@@ -53,14 +53,7 @@ def decode_and_verify_token(token, is_id_token=True):
             # Disable audience verification for access tokens, as they often lack the 'aud' claim
             verification_options["options"] = {"verify_aud": False}
 
-        # Decode the token using the signing key
-        decoded_token = jwt.decode(token, signing_key.key, **verification_options)
-
-        print(
-            "Decoded token:", decoded_token
-        )  # Debugging: Print the decoded token to inspect claims
-        return decoded_token
-
+        return jwt.decode(token, signing_key.key, **verification_options)
     except jwt.ExpiredSignatureError as err:
         print("Token has expired.")
         raise jwt.ExpiredSignatureError("Token has expired") from err
@@ -90,7 +83,7 @@ def login_required(f):
             # Decode and verify the token
             decoded_token = decode_and_verify_token(token)
             # You can add any additional verification logic here if needed
-            request.user = (
+            request.id_token = (
                 decoded_token  # Store the decoded token if you want user info
             )
 
@@ -490,9 +483,17 @@ def register_projects_endpoint():
         if not request.is_json:
             return {"error": "Content-Type must be application/json"}, 400
         data = request.json
-        if not data or "title" not in data or "description" not in data:
+        print("New project api endpoint", data)
+        id_token = request.id_token
+        print("Id token", id_token)
+        user_cognito_sub = id_token["sub"]
+        if not data or ("title" not in data) or ("description" not in data):
             return {"error": "Title and description are required"}, 400
-        project = Project(title=data["title"], description=data["description"])
+        if (len(data["title"]) <= 0) or (len(data["description"]) <= 0):
+            return {"error": "Title or description is empty"}, 400
+        project = Project(
+            title=data["title"], description=data["description"], sub=user_cognito_sub
+        )
         save_object(project)
         return jsonify({"message": "Project created", "project_id": project.id}), 201
 

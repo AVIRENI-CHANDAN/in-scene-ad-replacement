@@ -30,14 +30,20 @@ function NewProject() {
       return response.json().then((data) => {
         console.log("Data", data);
         setError(data.error || "An unknown error occurred.");
-        setTimeout(() => {
-          setError('');
-        }, 3000);
       });
     }).catch((error) => {
       setError("A network error occurred. Please try again later.");
     });
   };
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleTitleChange = (event) => { setProjectTitle(event.target.value); };
   const handleDescriptionChange = (event) => { setProjectDescription(event.target.value); };

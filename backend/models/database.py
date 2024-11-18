@@ -36,6 +36,7 @@ Example:
     save_object(new_annotation)
 """
 
+from functools import wraps
 from typing import List
 
 from flask import Flask
@@ -89,6 +90,21 @@ def create_db_models() -> None:
     db.create_all()
 
 
+def transactional(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        try:
+            result = f(*args, **kwargs)
+            db.session.commit()
+            return result
+        except Exception as e:
+            db.session.rollback()
+            raise e
+
+    return wrapper
+
+
+@transactional
 def save_object(model_object: db.Model) -> None:
     """Save a single model object to the database.
 
@@ -112,14 +128,10 @@ def save_object(model_object: db.Model) -> None:
         )
         >>> save_object(new_annotation)
     """
-    try:
-        db.session.add(model_object)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        raise e
+    db.session.add(model_object)
 
 
+@transactional
 def save_objects(object_list: List[db.Model]) -> None:
     """Save a list of model objects to the database in bulk.
 
@@ -141,14 +153,10 @@ def save_objects(object_list: List[db.Model]) -> None:
         ... ]
         >>> save_objects(video_list)
     """
-    try:
-        db.session.bulk_save_objects(object_list)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        raise e
+    db.session.bulk_save_objects(object_list)
 
 
+@transactional
 def delete_object(model_object: db.Model) -> None:
     """Delete a model object from the database.
 
@@ -166,9 +174,4 @@ def delete_object(model_object: db.Model) -> None:
         Exception: If the deletion fails for any reason, an exception may be raised.
     """
 
-    try:
-        db.session.delete(model_object)
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        raise e
+    db.session.delete(model_object)

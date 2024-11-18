@@ -21,6 +21,7 @@ function NewProject() {
     console.log("Form submit");
     await fetch("/api/projects", {
       method: "POST",
+      credentials: 'include',
       headers: {
         "Content-Type": "application/json",
       },

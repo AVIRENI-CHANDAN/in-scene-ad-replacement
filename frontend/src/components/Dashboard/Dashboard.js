@@ -1,51 +1,83 @@
 import React, { useEffect, useState } from 'react';
-import styles from './Dashboard.module.scss';
 import { useNavigate } from 'react-router-dom';
+import styles from './Dashboard.module.scss';
 
 const Dashboard = () => {
   const [projects, setProjects] = useState([]);
   const [error, setError] = useState(null);    // State to store error messages
   const [loading, setLoading] = useState(true); // State to handle loading state
+  const [fetch_data, setFetchData] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Function to fetch projects from the API
     const fetchProjects = async () => {
-      try {
-        const response = await fetch('/api/projects'); // Make the GET request
-        if (!response.ok) {
-          const errorMessages = {
-            400: 'Invalid request. Please try again.',
-            401: 'Please log in to continue.',
-            403: 'You don\'t have permission to access this resource.',
-            404: 'Project data not found.',
-            500: 'Server error. Please try again later.'
-          };
-          throw new Error(errorMessages[response.status] || `Server error ${response.status}`);
+      if (fetch_data) {
+        try {
+          const response = await fetch('/api/projects', {
+            method: 'GET',
+            credentials: 'include'
+          }); // Make the GET request
+          if (!response.ok) {
+            const errorMessages = {
+              400: 'Invalid request. Please try again.',
+              401: 'Please log in to continue.',
+              403: 'You don\'t have permission to access this resource.',
+              404: 'Project data not found.',
+              500: 'Server error. Please try again later.'
+            };
+            throw new Error(errorMessages[response.status] || `Server error ${response.status}`);
+          }
+          const data = await response.json(); // Parse the response JSON
+          console.log("Data", data);
+          setProjects(data);                 // Update state with fetched projects
+        } catch (error) {
+          setError(error.message);           // Handle errors
+        } finally {
+          setLoading(false);                 // Set loading to false after completion
+          setFetchData(false);
         }
-        const data = await response.json(); // Parse the response JSON
-        console.log("Data", data);
-        setProjects(data);                 // Update state with fetched projects
-      } catch (error) {
-        setError(error.message);           // Handle errors
-      } finally {
-        setLoading(false);                 // Set loading to false after completion
       }
     };
 
     fetchProjects();
-  }, []); // Empty dependency array ensures this runs only once when the component mounts
+  }, [fetch_data]); // Empty dependency array ensures this runs only once when the component mounts
 
 
   const handleCreateProject = () => {
     navigate("/new/project");
   };
 
-  const handleDeleteProject = (projectId) => {
-    setProjects(projects.filter((project) => project.id !== projectId));
+  const handleDeleteProject = async (projectId) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`api/projects/${projectId}/delete`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const errorMessages = {
+          400: 'Invalid request. Please try again.',
+          401: 'Please log in to continue.',
+          403: 'You don\'t have permission to access this resource.',
+          404: 'Project data not found.',
+          500: 'Server error. Please try again later.'
+        };
+        throw new Error(errorMessages[response.status] || `Server error ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Data", data);
+      setProjects([]);
+      setFetchData(true);
+    }
+    catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading) {
+  if (loading || fetch_data) {
     return <div>Loading...</div>;
   }
 

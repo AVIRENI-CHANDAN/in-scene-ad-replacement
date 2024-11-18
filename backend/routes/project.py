@@ -126,6 +126,27 @@ def list_projects():
 @app.route("/<path:project_id>/delete", methods=["POST"])
 @login_required
 def delete_project(project_id: str):
+    """Delete a project associated with the authenticated user.
+
+    This function handles the deletion of a specified project from the database. It verifies
+    that the project belongs to the authenticated user before proceeding with the deletion.
+
+    Args:
+        project_id (str): The unique identifier of the project to be deleted.
+
+    Returns:
+        Response: A JSON response indicating the success of the deletion or an error message
+        if the project is not found.
+
+    Raises:
+        NotFound: If the project does not exist for the authenticated user.
+
+    Examples:
+        >>> response = delete_project("12345")
+        >>> response.status_code
+        200
+    """
+
     decoded_id_token = request.id_token
     user_cognito_sub = decoded_id_token["sub"]
     project = Project.query.filter_by(id=project_id, sub=user_cognito_sub).first()

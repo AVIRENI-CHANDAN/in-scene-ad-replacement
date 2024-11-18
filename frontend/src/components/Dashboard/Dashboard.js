@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import styles from './Dashboard.module.scss';
 import { useNavigate } from 'react-router-dom';
+import styles from './Dashboard.module.scss';
 
 const Dashboard = () => {
   const [projects, setProjects] = useState([]);
@@ -12,7 +12,10 @@ const Dashboard = () => {
     // Function to fetch projects from the API
     const fetchProjects = async () => {
       try {
-        const response = await fetch('/api/projects'); // Make the GET request
+        const response = await fetch('/api/projects', {
+          method: 'GET',
+          credentials: 'include'
+        }); // Make the GET request
         if (!response.ok) {
           const errorMessages = {
             400: 'Invalid request. Please try again.',

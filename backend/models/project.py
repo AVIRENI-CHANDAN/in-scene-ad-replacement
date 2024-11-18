@@ -9,7 +9,6 @@ Key Features:
 - Supports basic attributes for managing project data.
 
 Model Attributes:
-- id (int): The unique identifier for the project.
 - sub (str): The sub of user associated with the project.
 - title (str): The title of the project, defaulting to "Untitled Project".
 - description (str): A textual description of the project.
@@ -28,6 +27,8 @@ Example:
     )
 """
 
+import uuid
+
 from .database import db
 
 
@@ -39,7 +40,6 @@ class Project(db.Model):
     associated with a specific user through the sub attribute of user.
 
     Attributes:
-        id (int): The unique identifier for the project.
         sub (str): The sub of the user associated with the project.
         title (str): The title of the project, defaulting to "Untitled Project".
         description (str): A textual description of the project.
@@ -57,7 +57,7 @@ class Project(db.Model):
         )
     """
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     sub = db.Column(db.String(255), nullable=False, unique=False, index=True)
     title = db.Column(db.String(100), nullable=False, default="Untitled Project")
     description = db.Column(db.Text)

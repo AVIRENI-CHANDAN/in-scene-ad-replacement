@@ -9,7 +9,6 @@ Key Features:
 - Establishes relationships with other models, specifically linking videos to projects.
 
 Model Attributes:
-- id (int): The unique identifier for the video.
 - project_id (int): A foreign key linking the video to a specific project.
 - filename (str): The name of the video file, which must be unique across all videos.
 
@@ -38,7 +37,6 @@ class Video(db.Model):
     is associated with a project through the project_id attribute.
 
     Attributes:
-        id (int): The unique identifier for the video.
         project_id (int): A foreign key linking the video to a specific project.
         filename (str): The name of the video file, which must be unique across all videos.
 
@@ -55,7 +53,7 @@ class Video(db.Model):
         >>> new_video = Video(project_id=1, filename="my_video.mp4")
     """
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id = db.Column(
         db.Integer, db.ForeignKey("project.id"), nullable=False, index=True
     )

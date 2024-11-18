@@ -112,8 +112,12 @@ def save_object(model_object: db.Model) -> None:
         )
         >>> save_object(new_annotation)
     """
-    with db.session.begin():
+    try:
         db.session.add(model_object)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
 
 
 def save_objects(object_list: List[db.Model]) -> None:
@@ -137,6 +141,34 @@ def save_objects(object_list: List[db.Model]) -> None:
         ... ]
         >>> save_objects(video_list)
     """
-
-    with db.session.begin():
+    try:
         db.session.bulk_save_objects(object_list)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e
+
+
+def delete_object(model_object: db.Model) -> None:
+    """Delete a model object from the database.
+
+    This function removes the specified model object from the current database session
+    and commits the changes to the database. It is important to ensure that the object
+    to be deleted exists in the session before calling this function.
+
+    Args:
+        model_object (db.Model): The model object to be deleted from the database.
+
+    Returns:
+        None: This function does not return a value.
+
+    Raises:
+        Exception: If the deletion fails for any reason, an exception may be raised.
+    """
+
+    try:
+        db.session.delete(model_object)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise e

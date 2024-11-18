@@ -35,7 +35,14 @@ import os
 
 from flask import Blueprint, jsonify, request
 
-from backend.models import Annotation, Project, Video, save_object, save_objects
+from backend.models import (
+    Annotation,
+    Project,
+    Video,
+    delete_object,
+    save_object,
+    save_objects,
+)
 
 from .util import login_required, secure_filename
 
@@ -114,6 +121,18 @@ def list_projects():
     return jsonify(
         [{"id": p.id, "title": p.title, "description": p.description} for p in projects]
     )
+
+
+@app.route("/<path:project_id>/delete", methods=["POST"])
+@login_required
+def delete_project(project_id: str):
+    decoded_id_token = request.id_token
+    user_cognito_sub = decoded_id_token["sub"]
+    project = Project.query.filter_by(id=project_id, sub=user_cognito_sub).first()
+    if not project:
+        return {"error": "Project not found"}, 404
+    delete_object(project)
+    return {"message": "Project deleted"}, 200
 
 
 @app.route("/<int:project_id>/upload", methods=["POST"])

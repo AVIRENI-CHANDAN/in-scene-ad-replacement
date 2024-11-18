@@ -26,6 +26,8 @@ Example:
     new_video = Video(project_id=1, filename="my_video.mp4")
 """
 
+import uuid
+
 from .database import db
 
 

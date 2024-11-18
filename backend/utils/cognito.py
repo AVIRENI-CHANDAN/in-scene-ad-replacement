@@ -42,6 +42,8 @@ Example:
     login_user("testuser", "SecurePassword123")
 """
 
+from typing import List
+
 import boto3
 
 from backend.utils.environ import get_environment_variable
@@ -51,7 +53,10 @@ cognito_client = boto3.client("cognito-idp")
 
 
 def sign_up(
-    username: str, password: str, email: str, user_attributes: dict, *args, **kwargs
+    username: str,
+    password: str,
+    email: str,
+    user_attributes: List[dict],
 ):
     """
     Registers a new user with AWS Cognito.
@@ -65,7 +70,6 @@ def sign_up(
         password (str): The password for the new user.
         email (str): The user's email address.
         user_attributes (list): Additional attributes for the user (e.g., email).
-        *args, **kwargs: Additional arguments for flexibility.
 
     Returns:
         dict: A dictionary containing the AWS Cognito response, which includes

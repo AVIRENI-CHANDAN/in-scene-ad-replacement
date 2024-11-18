@@ -24,13 +24,14 @@ import os
 from flask_cors import CORS
 
 from backend import (
+    auth_blueprint,
     create_app,
     create_db_models,
     get_environment_variable,
     initialize_db,
-    register_cognito_auth_endpoints,
-    register_projects_endpoint,
-    register_react_base,
+    project_blueprint,
+    react_blueprint,
+    register_blueprint,
     run_application,
 )
 
@@ -42,21 +43,27 @@ app = create_app(
 initialize_db(app)
 with app.app_context():
     create_db_models()
-    register_react_base()
-    register_cognito_auth_endpoints()
-    register_projects_endpoint()
+    register_blueprint(app, react_blueprint, auth_blueprint, project_blueprint)
 
 if __name__ == "__main__":
     CORS(
         app,
         resources={
-            r"/auth/*": {  # Apply CORS only to endpoints under /auth/
+            r"/auth/*": {
                 "origins": [
                     "http://localhost:3000",
                     "http://localhost:5000",
                 ],  # Specify allowed origins
                 "methods": ["GET", "POST"],
-            }
+            },
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:3000",
+                    "http://localhost:5000",
+                ],  # Specify allowed origins
+                "methods": ["GET", "POST"],
+            },
         },
+        supports_credentials=True,
     )
     run_application(app)

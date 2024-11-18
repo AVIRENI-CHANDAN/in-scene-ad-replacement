@@ -91,6 +91,29 @@ def create_db_models() -> None:
 
 
 def transactional(f):
+    """Decorator to manage database transactions for a function.
+
+    This decorator wraps a function to ensure that its execution is treated as a single
+    transaction. If the function completes successfully, the transaction is committed;
+    if an exception occurs, the transaction is rolled back to maintain database integrity.
+
+    Args:
+        f (function): The function to be decorated, which should perform database operations.
+
+    Returns:
+        function: The wrapped function with transaction management.
+
+    Raises:
+        Exception: If an error occurs during the function execution, the transaction is rolled back
+        and the exception is raised.
+
+    Examples:
+        @transactional
+        def add_user(username, password):
+            # Function logic to add a user to the database
+            ...
+    """
+
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:

@@ -28,8 +28,9 @@ Example:
     )
 """
 
-from .database import db
 import uuid
+
+from .database import db
 
 
 class Annotation(db.Model):

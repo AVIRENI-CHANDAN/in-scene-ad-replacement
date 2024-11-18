@@ -9,7 +9,6 @@ Key Features:
 - Establishes relationships with other models, specifically linking annotations to projects.
 
 Model Attributes:
-- id (int): The unique identifier for the annotation.
 - project_id (int): A foreign key linking the annotation to a specific project.
 - timestamp (float): The timestamp indicating when the annotation was created.
 - points (JSON): A JSON object storing the points associated with the annotation.
@@ -23,7 +22,6 @@ Example:
     from backend.models.annotation import Annotation
 
     new_annotation = Annotation(
-        project_id=1, 
         timestamp=1625256000, 
         points={"x": 10, "y": 20}, 
         image_url="http://example.com/image.png"
@@ -31,6 +29,7 @@ Example:
 """
 
 from .database import db
+import uuid
 
 
 class Annotation(db.Model):
@@ -41,7 +40,6 @@ class Annotation(db.Model):
     points, and a URL to an associated image.
 
     Attributes:
-        id (int): The unique identifier for the annotation.
         project_id (int): A foreign key linking the annotation to a specific project.
         timestamp (float): The timestamp indicating when the annotation was created.
         points (dict): A JSON object storing the points associated with the annotation.
@@ -54,14 +52,13 @@ class Annotation(db.Model):
 
     Example:
         >>> new_annotation = Annotation(
-            project_id=1,
             timestamp=1625256000, p
             oints={"x": 10, "y": 20},
             image_url="http://example.com/image.png"
         )
     """
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id = db.Column(
         db.Integer, db.ForeignKey("project.id"), nullable=False, index=True
     )

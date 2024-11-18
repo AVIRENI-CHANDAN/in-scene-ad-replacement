@@ -25,6 +25,12 @@ Example:
 """
 
 from .annotation import Annotation
-from .database import create_db_models, initialize_db, save_object, save_objects
+from .database import (
+    create_db_models,
+    delete_object,
+    initialize_db,
+    save_object,
+    save_objects,
+)
 from .project import Project
 from .video import Video

@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import styles from './LoginPage.module.scss';
 
 function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [username_input_active, setUsernameInputActive] = useState(false);
+  const [password_input_active, setPasswordInputActive] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
@@ -55,33 +58,79 @@ function LoginPage() {
     }
   };
 
+  const handleShowPassword = () => {
+    console.log("Triggered the type change");
+    setShowPassword(!showPassword);
+  }
+
   return (
     <div className={styles.Login}>
-      <h1>Login</h1>
-      <form className={styles.FormSection} onSubmit={handleLogin}>
-        {errorMessage && <p className={styles.ErrorMessage}>{errorMessage}</p>}
+      <div className={styles.LoginContainer}>
+        <div className={styles.LogoTitleWrapper}>
+          <div className={styles.Box}>
+            <div className={styles.Logo}>
+              <img src="https://gyrus.ai/assets/website_assets/assets/images/demoPageAssets/gyrus-blue.png" alt="Logo" />
+            </div>
+            <div className={styles.Title}>
+              ISAR 2D Demo
+            </div>
+            <div className={styles.MediaLinkWrapper}>
+              <div className={styles.MediaLinkBox}>
+                <img src='https://gyrus.ai/assets/videodemoassets/facebook.png' alt='Facebook' />
+              </div>
+              <div className={styles.MediaLinkBox}>
+                <img src='https://gyrus.ai/assets/videodemoassets/youtube.png' alt='Youtube' />
+              </div>
+              <div className={styles.MediaLinkBox}>
+                <img src='https://gyrus.ai/assets/videodemoassets/X_logo_2023_(white).png' alt='X' />
+              </div>
+              <div className={styles.MediaLinkBox}>
+                <img src='https://gyrus.ai/assets/videodemoassets/linkedin.png' alt='LinkedIn' />
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <label>Username</label>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-
-        <label>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <button className={styles.SubmitButton} type="submit">
-          Login
-        </button>
-      </form>
-    </div>
+        <div className={styles.LoginWrapper}>
+          <h1>Hello,Welcome to Gyrus AI
+          </h1>
+          <form className={styles.FormSection} onSubmit={handleLogin}>
+            {errorMessage && <p className={styles.ErrorMessage}>{errorMessage}</p>}
+            <div className={styles.FormGroup}>
+              <label className={`${username_input_active ? styles.TopLabel : ''}`}>Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => { setUsername(e.target.value); setUsernameInputActive(e.target.value !== '') }}
+                required
+              />
+              <div className={styles.Icon}>
+                <i className='fas fa-user'></i>
+              </div>
+            </div>
+            <div className={styles.FormGroup}>
+              <label className={`${password_input_active ? styles.TopLabel : ''}`}>Password</label>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setPasswordInputActive(e.target.value !== '') }}
+                required
+              />
+              <div className={styles.Icon}>
+                <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} ${styles.EyeIcon}`} onClick={handleShowPassword}></i>
+              </div>
+            </div>
+            <div className={styles.FormGroup}>
+              <Link to='forgot-password' className={styles.ForgotPasswordBtn}>Forgot Password?</Link>
+            </div>
+            <button className={styles.SubmitButton} type="submit">
+              Sign In
+            </button>
+          </form>
+          <div className={styles.RegistrationDirectSection}>Don't have a account? please <Link to='/signup' className={styles.RegistrationDirectLink}>Sign-up</Link></div>
+        </div >
+      </div>
+    </div >
   );
 }
 

@@ -25,11 +25,26 @@ function LandingPage() {
       <section className={styles.HowItWorksSection}>
         <h2>How It Works</h2>
         <ol>
-          <li><strong>Upload Your Video:</strong> Choose any video you want to enhance.</li>
-          <li><strong>Select the Scene:</strong> Navigate to the scene or screen you want to modify.</li>
-          <li><strong>Add Your Logo:</strong> Upload your branding or ad image, adjust size and position.</li>
-          <li><strong>Preview and Adjust:</strong> Watch a live preview and make any tweaks.</li>
-          <li><strong>Download and Share:</strong> Export your video and share it across platforms.</li>
+          <li>
+            <strong>Upload Your Video:</strong>
+            <p>Choose any video you want to enhance.</p>
+          </li>
+          <li>
+            <strong>Select the Scene:</strong>
+            <p>Navigate to the scene or screen you want to modify.</p>
+          </li>
+          <li>
+            <strong>Add Your Logo:</strong>
+            <p>Upload your branding or ad image, adjust size and position.</p>
+          </li>
+          <li>
+            <strong>Preview and Adjust:</strong>
+            <p>Watch a live preview and make any tweaks.</p>
+          </li>
+          <li>
+            <strong>Download and Share:</strong>
+            <p>Export your video and share it across platforms.</p>
+          </li>
         </ol>
       </section>
 

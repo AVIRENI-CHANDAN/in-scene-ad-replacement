@@ -10,7 +10,7 @@ function NavBar() {
     <header className={styles.Header}>
       <Link to="/" className={styles.LogoContainer}>
         <div className={styles.LogoWrapper}>
-          <img src="/g.svg" alt='G logo Error' className={styles.Logo} />
+          <img src="https://gyrus.ai/assets/website_assets/assets/images/demoPageAssets/gyrus-blue.png" alt='G logo Error' className={styles.Logo} />
         </div>
       </Link>
       <nav className={styles.NavigationBar}>
@@ -18,6 +18,7 @@ function NavBar() {
           {isAuthenticated ? (
             // Post-login navigation items
             <>
+              <Link to="/projects" className={styles.ActionButton}>Projects</Link>
               <Link to="/dashboard" className={styles.ActionButton}>Dashboard</Link>
               <Link to="/profile" className={styles.ActionButton}>Profile</Link>
               <button onClick={logout} className={styles.LogoutActionButton}>Logout</button>

@@ -7,29 +7,63 @@ function RegistrationPage() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [verifyPassword, setVerifyPassword] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { isAuthenticated } = useAuth(); // Access authentication state
+  const [username_input_active, setUsernameInputActive] = useState(false);
+  const [email_input_active, setEmailInputActive] = useState(false);
+  const [password_input_active, setPasswordInputActive] = useState(false);
+  const [verify_password_input_active, setVerifyPasswordInputActive] = useState(false);
+  const [verification_input_active, setVerificationInputActive] = useState(false);
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to dashboard if user is already authenticated
+  // Clear error message after 3 seconds
+  useEffect(() => {
+    if (errorMessage) {
+      const timeout = setTimeout(() => {
+        setErrorMessage('');
+      }, 3000);
+      return () => clearTimeout(timeout); // Cleanup timeout on unmount or errorMessage change
+    }
+  }, [errorMessage]);
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
 
-  // Navigate to login after both registration and verification are successful
   useEffect(() => {
     if (isRegistered && isVerified) {
       navigate('/login');
     }
   }, [isRegistered, isVerified, navigate]);
 
-  const handleRegister = async () => {
+  const handleRegister = async (event) => {
+    event.preventDefault();
     setErrorMessage('');
+
+    // Validation for empty fields
+    if (!username.trim()) {
+      setErrorMessage('Username cannot be empty.');
+      return;
+    }
+    if (!email.trim()) {
+      setErrorMessage('Email cannot be empty.');
+      return;
+    }
+    if (!password.trim()) {
+      setErrorMessage('Password cannot be empty.');
+      return;
+    }
+    if (password !== verifyPassword) {
+      setErrorMessage('Passwords do not match.');
+      return;
+    }
+
     try {
       const response = await fetch('/auth/register', {
         method: 'POST',
@@ -48,7 +82,8 @@ function RegistrationPage() {
     }
   };
 
-  const handleVerifySignUp = async () => {
+  const handleVerifySignUp = async (event) => {
+    event.preventDefault();
     setErrorMessage('');
     try {
       const response = await fetch('/auth/verify_sign_up', {
@@ -70,50 +105,96 @@ function RegistrationPage() {
 
   return (
     <div className={styles.Register}>
-      <h1>Register</h1>
-      {errorMessage && <p className={styles.ErrorMessage}>{errorMessage}</p>}
-      {isRegistered ? (
-        <div className={styles.FormSection}>
-          <h2>Verify Your Account</h2>
-          <label>Verification Code</label>
-          <input
-            type="text"
-            value={verificationCode}
-            onChange={(e) => setVerificationCode(e.target.value)}
-            required
-          />
-          <button className={styles.SubmitButton} onClick={handleVerifySignUp}>
-            Verify
-          </button>
+      <div className={styles.RegistrationContainer}>
+        <div className={styles.LogoTitleWrapper}>
+          <div className={styles.Box}>
+            <div className={styles.Logo}>
+              <img src="https://gyrus.ai/assets/website_assets/assets/images/demoPageAssets/gyrus-blue.png" alt="Logo" />
+            </div>
+            <div className={styles.Title}>
+              ISAR 2D Demo
+            </div>
+            <div className={styles.MediaLinkWrapper}>
+              <div className={styles.MediaLinkBox}>
+                <img src='https://gyrus.ai/assets/videodemoassets/facebook.png' alt='Facebook' />
+              </div>
+              <div className={styles.MediaLinkBox}>
+                <img src='https://gyrus.ai/assets/videodemoassets/youtube.png' alt='Youtube' />
+              </div>
+              <div className={styles.MediaLinkBox}>
+                <img src='https://gyrus.ai/assets/videodemoassets/X_logo_2023_(white).png' alt='X' />
+              </div>
+              <div className={styles.MediaLinkBox}>
+                <img src='https://gyrus.ai/assets/videodemoassets/linkedin.png' alt='LinkedIn' />
+              </div>
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className={styles.FormSection}>
-          <label>Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button className={styles.SubmitButton} onClick={handleRegister}>
-            Register
-          </button>
+
+        <div className={styles.RegistrationWrapper}>
+          <h1>Welcome to Gyrus AI</h1>
+          {errorMessage && <p className={styles.ErrorMessage}>{errorMessage}</p>}
+          {isRegistered ? (
+            <form className={styles.FormSection} onSubmit={handleVerifySignUp}>
+              <h2>Verify Your Account</h2>
+              <div className={styles.FormGroup}>
+                <label className={`${verification_input_active ? styles.TopLabel : ''}`}>Verification Code</label>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => { setVerificationCode(e.target.value); setVerificationInputActive(e.target.value !== ''); }}
+                  required
+                />
+              </div>
+              <button className={styles.SubmitButton} type='submit'>
+                Verify
+              </button>
+            </form>
+          ) : (
+            <form className={styles.FormSection} onSubmit={handleRegister}>
+              <div className={styles.FormGroup}>
+                <label className={`${username_input_active ? styles.TopLabel : ''}`}>Username</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => { setUsername(e.target.value); setUsernameInputActive(e.target.value !== ''); }}
+                  required
+                />
+              </div>
+              <div className={styles.FormGroup}>
+                <label className={`${email_input_active ? styles.TopLabel : ''}`}>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setEmailInputActive(e.target.value !== ''); }}
+                  required
+                />
+              </div>
+              <div className={styles.FormGroup}>
+                <label className={`${password_input_active ? styles.TopLabel : ''}`}>Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setPasswordInputActive(e.target.value !== ''); }}
+                  required
+                />
+              </div>
+              <div className={styles.FormGroup}>
+                <label className={`${verify_password_input_active ? styles.TopLabel : ''}`}>Verify Password</label>
+                <input
+                  type="password"
+                  value={verifyPassword}
+                  onChange={(e) => { setVerifyPassword(e.target.value); setVerifyPasswordInputActive(e.target.value !== ''); }}
+                  required
+                />
+              </div>
+              <button className={styles.SubmitButton} type='submit'>
+                Register
+              </button>
+            </form>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

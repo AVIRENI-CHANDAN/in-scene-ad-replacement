@@ -19,8 +19,8 @@ function Dashboard() {
           <div className={styles.ProcedureContainer}>
             <div className={styles.StepsList}>
               {Object.entries(steps).map(([key, url]) => (
-                <div className={styles.StepItem}>
-                  <div className={styles.StepImage} key={key}>
+                <div className={styles.StepItem} key={key}>
+                  <div className={styles.StepImage}>
                     <img src={url} alt='Procedure 1' />
                   </div>
                 </div>

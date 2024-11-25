@@ -8,8 +8,7 @@ function NewProject() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState('Anonymous User');
-  const [fileName, setFileName] = useState("");
-
+  const [file, setFile] = useState(null);
 
   const navigate = useNavigate();
 
@@ -17,28 +16,34 @@ function NewProject() {
     setIsSubmitting(true);
     event.preventDefault();
     if (!projectTitle.trim() || !projectDescription.trim()) {
-      setError('Project title and description are required');
+      setError("Project title and description are required");
+      setIsSubmitting(false);
       return;
     }
+
+    if (file) {
+      console.log("File", file);
+    }
+
+    const formData = new FormData();
+    formData.append("title", projectTitle);
+    formData.append("description", projectDescription);
+    formData.append("file", file);
+
     setError('');
     console.log("Form submit");
     await fetch("/api/projects", {
       method: "POST",
       credentials: 'include',
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: projectTitle,
-        description: projectDescription,
-      }),
-
+      body: formData
     }).then((response) => {
+      console.log("The response", response);
       if (response.ok) {
         response.json().then(data => {
           setProjectTitle('');
           setProjectDescription('');
-          navigate('/dashboard');
+          setFile(null);
+          navigate(`/project/${data.project_id}`);
         });
       } else {
         response.json().then(data => setError(data.error));
@@ -61,10 +66,10 @@ function NewProject() {
 
   const handleTitleChange = (event) => { setProjectTitle(event.target.value); };
   const handleDescriptionChange = (event) => { setProjectDescription(event.target.value); };
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setFileName(file.name);
+  const handleFileChange = (e) => {
+    console.log("Event target", e.target.files);
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
     }
   };
 
@@ -114,7 +119,7 @@ function NewProject() {
                     <div className={styles.FormGroup}>
                       <label className={styles.FileLabel} htmlFor='input-file'>
                         <span className={styles.FileLabelBtn}>Browse..</span>
-                        <span className={styles.FileName}>{fileName || "No file selected."}</span>
+                        <span className={styles.FileName}>{file ? file.name : "No file selected."}</span>
                       </label>
                       <input className={styles.FileField} type='file' id='input-file' onChange={handleFileChange} accept='video/*' />
                     </div>

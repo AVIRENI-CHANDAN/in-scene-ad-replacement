@@ -12,6 +12,7 @@ import NotFound from './components/NotFound/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import RegistrationPage from './components/RegistrationPage/RegistrationPage';
 import Projects from './components/Projects/Projects';
+import ScenePage from './components/ScenePage/ScenePage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/new/project" element={<NewProject />} />
               <Route path="/projects" element={<Projects />} />
+              <Route path="/project/:project_id" element={<ScenePage />} />
               {/* Add other authenticated routes here */}
             </Route>
 

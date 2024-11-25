@@ -61,3 +61,4 @@ class Project(db.Model):
     sub = db.Column(db.String(255), nullable=False, unique=False, index=True)
     title = db.Column(db.String(100), nullable=False, default="Untitled Project")
     description = db.Column(db.Text)
+    file_path = db.Column(db.String(255), nullable=False)

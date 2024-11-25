@@ -49,7 +49,7 @@ from .util import login_required, secure_filename
 app = Blueprint("project", __name__, url_prefix="/api/projects")
 
 
-@app.route("/", methods=["POST"])
+@app.route("", methods=["POST"])
 @login_required
 def create_project():
     """Create a new project for the authenticated user.
@@ -73,24 +73,32 @@ def create_project():
         >>> response.status_code
         201
     """
-
-    if not request.is_json:
-        return {"error": "Content-Type must be application/json"}, 400
-    data = request.json
+    print("Form Data:", request.form)
+    title = request.form.get("title")
+    description = request.form.get("description")
+    uploaded_file = request.files.get("file")
+    if request.is_json:
+        return {"error": "Content-Type should not be application/json"}, 400
     decoded_id_token = request.id_token
     user_cognito_sub = decoded_id_token["sub"]
-    if not data or ("title" not in data) or ("description" not in data):
-        return {"error": "Title and description are required"}, 400
-    if (len(data["title"]) <= 0) or (len(data["description"]) <= 0):
+    if not title or not description or not uploaded_file:
+        return jsonify({"error": "All fields are required"}), 400
+    if (len(title) <= 0) or (len(description) <= 0):
         return {"error": "Title or description is empty"}, 400
+    # Handle file upload
+    file_path = None
+    if uploaded_file:
+        filename = secure_filename(uploaded_file.filename)
+        file_path = os.path.join("uploads", filename)
+        uploaded_file.save(file_path)
     project = Project(
-        title=data["title"], description=data["description"], sub=user_cognito_sub
+        title=title, description=description, sub=user_cognito_sub, file_path=file_path
     )
     save_object(project)
     return jsonify({"message": "Project created", "project_id": project.id}), 201
 
 
-@app.route("/", methods=["GET"])
+@app.route("", methods=["GET"])
 @login_required
 def list_projects():
     """Retrieve a list of projects associated with the authenticated user.

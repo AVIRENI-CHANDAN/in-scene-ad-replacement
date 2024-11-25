@@ -46,7 +46,9 @@ Example:
 
 import base64
 import hashlib
+import os
 import re
+import uuid
 from functools import wraps
 from http import HTTPStatus
 
@@ -292,5 +294,13 @@ def secure_filename(file_name: str) -> str:
     Examples:
         >>> secure_name = secure_filename("my_file.txt")
     """
+    file_extension = os.path.splitext(file_name)[1]
+    return f"{generate_uuid_hex()}{file_extension}"
 
-    return generate_sha256_coded_string(file_name)
+
+def generate_uuid_hex() -> str:
+    """Generate a UUID random string.
+    Returns:
+    str: The UUID as a hexadecimal string.
+    """
+    return uuid.uuid4().hex

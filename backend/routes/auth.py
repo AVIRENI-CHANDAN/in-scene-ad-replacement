@@ -214,6 +214,38 @@ def refresh_access_token():
         )
 
 
+@app.route("/resend-verification", methods=["POST"])
+def resend_verification():
+    try:
+        # Get the user's email or username from the request
+        data = request.json
+        username = data.get("username")
+
+        if not username:
+            return jsonify({"error": "Username is required"}), 400
+
+        # Call the ResendConfirmationCode API
+        response = cognito_client.resend_confirmation_code(
+            ClientId=get_environment_variable("COGNITO_CLIENT_ID"), Username=username
+        )
+
+        return (
+            jsonify(
+                {
+                    "message": "Confirmation code resent successfully.",
+                    "response": response,
+                }
+            ),
+            200,
+        )
+    except cognito_client.exceptions.UserNotFoundException:
+        return jsonify({"error": "User not found"}), 404
+    except cognito_client.exceptions.InvalidParameterException as e:
+        return jsonify({"error": f"Invalid parameter: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+
 @app.route("/logout", methods=["POST"])
 @login_required
 def logout():

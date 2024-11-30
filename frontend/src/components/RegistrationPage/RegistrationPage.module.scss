@@ -186,6 +186,14 @@
                         background-color: #00bf7b;
                     }
                 }
+
+                .ResendCodeLink {
+                    align-self: flex-end;
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: bold;
+                    text-decoration: underline;
+                }
             }
         }
     }

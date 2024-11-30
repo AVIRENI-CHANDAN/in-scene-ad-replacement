@@ -103,6 +103,25 @@ function RegistrationPage() {
     }
   };
 
+  const handleResendVerification = async (event) => {
+    event.preventDefault();
+    setErrorMessage('');
+    try {
+      const response = await fetch('/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        setErrorMessage(errorData.error || 'Request failed');
+      }
+    } catch (error) {
+      console.error('Error during request:', error);
+      setErrorMessage('An error occurred during request. Please try again.');
+    }
+  }
+
   return (
     <div className={styles.Register}>
       <div className={styles.RegistrationContainer}>
@@ -149,6 +168,7 @@ function RegistrationPage() {
               <button className={styles.SubmitButton} type='submit'>
                 Verify
               </button>
+              <div onClick={handleResendVerification} className={styles.ResendCodeLink}>Resend code</div>
             </form>
           ) : (
             <form className={styles.FormSection} onSubmit={handleRegister}>

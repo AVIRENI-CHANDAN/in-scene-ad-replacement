@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/theme/colors.dart';
 
 import 'actionbuttons.dart';
 
@@ -17,9 +18,15 @@ class AppNavigationBar extends StatelessWidget implements PreferredSizeWidget {
         onTap: () {
           Navigator.pushNamed(context, "/");
         },
-        child: Text(title, style: TextStyle(fontStyle: FontStyle.italic)),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontStyle: FontStyle.italic,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      backgroundColor: AppColors.primary,
       actions: [
         if (currentRoute != "/register") UserRegistrationActionButton(),
         if (currentRoute != "/login") UserLoginActionButton(),

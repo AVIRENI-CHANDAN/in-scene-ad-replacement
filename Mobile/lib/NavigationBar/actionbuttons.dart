@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/theme/colors.dart';
 
 class UserRegistrationActionButton extends StatelessWidget {
   const UserRegistrationActionButton({super.key});
@@ -8,8 +9,11 @@ class UserRegistrationActionButton extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 4),
       child: ElevatedButton.icon(
-        label: Text("Signup", style: TextStyle(fontSize: 10)),
-        icon: Icon(Icons.person_add),
+        label: Text(
+          "Signup",
+          style: TextStyle(fontSize: 10, color: AppColors.textPrimary),
+        ),
+        icon: Icon(Icons.person_add, color: AppColors.textPrimary),
         onPressed: () {
           // ScaffoldMessenger.of(context).showSnackBar(
           //   SnackBar(content: Text('Registration Button pressed')),
@@ -29,8 +33,11 @@ class UserLoginActionButton extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8),
       child: ElevatedButton.icon(
-        label: Text("Signin", style: TextStyle(fontSize: 10)),
-        icon: Icon(Icons.login),
+        label: Text(
+          "Signin",
+          style: TextStyle(fontSize: 10, color: AppColors.textPrimary),
+        ),
+        icon: Icon(Icons.login, color: AppColors.textPrimary),
         onPressed: () {
           // Define notifications action
           // ScaffoldMessenger.of(

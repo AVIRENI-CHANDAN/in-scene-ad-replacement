@@ -49,7 +49,7 @@ def serve_react_app(path=""):
     """
     try:
         # Serve common static file types directly
-        if path and path.endswith((".js", ".css", ".png", ".jpg", ".svg")):
+        if path and path.endswith((".js", ".css", ".png", ".jpg", ".svg", ".jpeg")):
             return send_from_directory(current_app.static_folder, path), HTTPStatus.OK
         # Default to `index.html` for unrecognized paths
         return (

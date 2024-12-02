@@ -36,7 +36,7 @@ def create_app(*args, **kwargs) -> Flask:
     return Flask(__name__, *args, **kwargs)
 
 
-def run_application(app: Flask, debug: bool = False) -> None:
+def run_application(app: Flask, debug: bool = False, host: str = "0.0.0.0") -> None:
     """Start the Flask application server with optional debugging enabled.
 
     This function launches the Flask application, allowing it to process incoming web requests. It
@@ -47,6 +47,7 @@ def run_application(app: Flask, debug: bool = False) -> None:
     Args:
         app (Flask): The Flask application instance to be run.
         debug (bool, optional): A flag indicating whether to enable debug mode. Defaults to False.
+        host (str, optional): The host to bind the application to. Defaults to "0.0.0.0".
 
     Returns:
         None: This function does not return a value.
@@ -55,4 +56,4 @@ def run_application(app: Flask, debug: bool = False) -> None:
         >>> run_application(app)
     """
     is_debug_mode = parse_bool(get_environment_variable("DEBUG")) or debug
-    app.run(debug=is_debug_mode)
+    app.run(debug=is_debug_mode, host=host)

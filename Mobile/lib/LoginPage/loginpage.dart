@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
@@ -23,14 +25,28 @@ class LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  // Initialize Dio and CookieJar
   final Dio dio = Dio();
   final CookieJar cookieJar = CookieJar();
 
   @override
   void initState() {
     super.initState();
-    dio.interceptors.add(CookieManager(cookieJar)); // Attach CookieManager
+    dio.interceptors.add(CookieManager(cookieJar));
+  }
+
+  String? _extractIdToken(List<Cookie> cookies) {
+    try {
+      final idTokenCookie = cookies.firstWhere(
+        (cookie) => cookie.name == 'id_token',
+        orElse: () => Cookie('id_token', ''),
+      );
+      return idTokenCookie.value.isNotEmpty ? idTokenCookie.value : null;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error extracting id_token: $e');
+      }
+      return null;
+    }
   }
 
   Future<void> _login() async {
@@ -54,15 +70,31 @@ class LoginPageState extends State<LoginPage> {
         });
 
         if (response.statusCode == 200) {
-          if (kDebugMode) {
-            print(
-              'Cookies: ${await cookieJar.loadForRequest(Uri.parse(AppConfig.baseUrl))}',
+          // Get cookies for the domain
+          final cookies = await cookieJar.loadForRequest(
+            Uri.parse(AppConfig.baseUrl),
+          );
+          final idToken = _extractIdToken(cookies);
+
+          if (idToken != null) {
+            if (kDebugMode) {
+              print('ID Token retrieved successfully');
+            }
+
+             _passwordController.clear();
+            // Navigate to home screen with the token
+            Navigator.pushReplacementNamed(
+              context,
+              "/user/home",
+              arguments: {'idToken': idToken},
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to get authentication token'),
+              ),
             );
           }
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Login Successful!')));
-          Navigator.pushNamed(context, "/user/home");
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error: ${response.statusMessage}')),
@@ -90,15 +122,15 @@ class LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Text(
+              const Text(
                 "Login Page",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: 'Username', // Updated label
+                decoration: const InputDecoration(
+                  labelText: 'Username',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
@@ -108,10 +140,10 @@ class LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
                 ),
@@ -123,10 +155,13 @@ class LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               _isLoading
-                  ? CircularProgressIndicator()
-                  : ElevatedButton(onPressed: _login, child: Text('Login')),
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                    onPressed: _login,
+                    child: const Text('Login'),
+                  ),
             ],
           ),
         ),

@@ -15,8 +15,7 @@ venv/
 **/.DS_Store
 
 # Editor
-.vscode/*
-.idea/*
+.vscode/
 
 # Database files
 **/*.db
@@ -25,3 +24,8 @@ venv/
 
 # Uploads folders
 uploads/
+
+# IDE
+.idea/
+.vs/
+.eclipse/

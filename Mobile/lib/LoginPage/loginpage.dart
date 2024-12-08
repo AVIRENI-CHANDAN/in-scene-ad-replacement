@@ -81,6 +81,7 @@ class LoginPageState extends State<LoginPage> {
               print('ID Token retrieved successfully');
             }
 
+             _passwordController.clear();
             // Navigate to home screen with the token
             Navigator.pushReplacementNamed(
               context,

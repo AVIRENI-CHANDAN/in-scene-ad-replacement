@@ -49,3 +49,28 @@ class UserLoginActionButton extends StatelessWidget {
     );
   }
 }
+
+class ProfileActionButton extends StatelessWidget {
+  const ProfileActionButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8),
+      child: ElevatedButton.icon(
+        label: Text(
+          "Profile",
+          style: TextStyle(fontSize: 10, color: AppColors.textPrimary),
+        ),
+        icon: Icon(Icons.account_circle, color: AppColors.textPrimary),
+        onPressed: () {
+          // Define notifications action
+          // ScaffoldMessenger.of(
+          //   context,
+          // ).showSnackBar(SnackBar(content: Text('Login action pressed')));
+          Navigator.pushNamed(context, "/profile");
+        },
+      ),
+    );
+  }
+}

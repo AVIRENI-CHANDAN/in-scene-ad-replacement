@@ -5,13 +5,16 @@ import 'actionbuttons.dart';
 
 class AppNavigationBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  bool isAuthentiated = false;
 
-  const AppNavigationBar({super.key, required this.title});
+  AppNavigationBar({
+    super.key,
+    required this.title,
+    this.isAuthentiated = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final currentRoute = ModalRoute.of(context)?.settings.name;
-
     return AppBar(
       leading: Container(width: 0),
       title: GestureDetector(
@@ -28,8 +31,9 @@ class AppNavigationBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       backgroundColor: AppColors.primary,
       actions: [
-        if (currentRoute != "/register") UserRegistrationActionButton(),
-        if (currentRoute != "/login") UserLoginActionButton(),
+        if (!isAuthentiated) UserRegistrationActionButton(),
+        if (!isAuthentiated) UserLoginActionButton(),
+        if (isAuthentiated) ProfileActionButton(),
       ],
     );
   }

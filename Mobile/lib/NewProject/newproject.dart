@@ -2,6 +2,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class NewProject extends StatefulWidget {
+  const NewProject({super.key});
+
   @override
   _NewProjectState createState() => _NewProjectState();
 }
@@ -10,9 +12,9 @@ class _NewProjectState extends State<NewProject> {
   final _formKey = GlobalKey<FormState>();
   String _projectTitle = '';
   String _projectDescription = '';
-  String _error = '';
+  final String _error = '';
   bool _isSubmitting = false;
-  String _user = 'Anonymous User';
+  final String _user = 'Anonymous User';
   PlatformFile? _file;
 
   void _submitForm() async {

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/NavigationBar/navigationbar.dart';
 import 'package:mobile/app_config.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class LoginPage extends StatefulWidget {
   final String appTitle;
@@ -26,10 +27,25 @@ class LoginPageState extends State<LoginPage> {
   final Dio dio = Dio();
   final CookieJar cookieJar = CookieJar();
 
+  Future<void> requestPermissions() async {
+    // Request storage permission
+    PermissionStatus status = await Permission.storage.request();
+
+    if (status.isGranted) {
+      print("Permission granted to read/write files.");
+      // Proceed with file access operations
+    } else {
+      print("Permission denied.");
+      // Handle the case where permission is not granted
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     dio.interceptors.add(CookieManager(cookieJar));
+    // Request permissions when the app starts
+    requestPermissions();
   }
 
   String? _extractIdToken(List<Cookie> cookies) {
@@ -157,9 +173,9 @@ class LoginPageState extends State<LoginPage> {
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
-                    onPressed: _login,
-                    child: const Text('Login'),
-                  ),
+                      onPressed: _login,
+                      child: const Text('Login'),
+                    ),
             ],
           ),
         ),

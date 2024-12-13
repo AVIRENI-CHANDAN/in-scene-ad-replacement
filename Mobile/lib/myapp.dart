@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/LoginPage/loginpage.dart';
+import 'package:mobile/NewProject/newproject.dart';
 import 'package:mobile/RegistrationPage/registrationpage.dart';
 import 'package:mobile/RegistrationPage/verification.dart';
 import 'package:mobile/UserHome/userhome.dart';
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
         "/register": (context) => RegistrationPage(appTitle: "Gyrus"),
         "/user/home": (context) => UserHome(appTitle: "Gyrus"),
         '/verify_sign_up': (context) => VerificationPage(appTitle: 'Gyrus'),
+        "/new/project": (context) => NewProject(),
       },
       onUnknownRoute: (settings) {
         // Redirect to a default route
